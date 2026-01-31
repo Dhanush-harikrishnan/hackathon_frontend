@@ -3,22 +3,22 @@ import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io, Socket } from 'socket.io-client';
 import type { RootState, AppDispatch } from '../store';
-import { 
-  startSos, 
-  decrementCountdown, 
-  cancelSos, 
-  setSosSent 
+import {
+  startSos,
+  decrementCountdown,
+  cancelSos,
+  setSosSent
 } from '../store/slices/sosSlice';
 import { AlertTriangle, X, Phone, Check, Loader2 } from 'lucide-react';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 // Countdown Overlay Component
-function CountdownOverlay({ 
-  count, 
-  onCancel 
-}: { 
-  count: number; 
+function CountdownOverlay({
+  count,
+  onCancel
+}: {
+  count: number;
   onCancel: () => void;
 }) {
   return (
@@ -41,9 +41,9 @@ function CountdownOverlay({
             animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut', delay: 0.5 }}
           />
-          
+
           {/* Main countdown circle */}
-          <motion.div 
+          <motion.div
             className="absolute inset-4 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-2xl shadow-red-500/50"
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
@@ -62,8 +62,8 @@ function CountdownOverlay({
             </AnimatePresence>
           </motion.div>
         </div>
-        
-        <motion.h2 
+
+        <motion.h2
           className="text-2xl font-bold text-white mb-2"
           animate={{ opacity: [1, 0.7, 1] }}
           transition={{ duration: 1, repeat: Infinity }}
@@ -73,7 +73,7 @@ function CountdownOverlay({
         <p className="text-slate-400 mb-8 max-w-xs mx-auto">
           Emergency services will be notified with your location
         </p>
-        
+
         {/* Cancel Button */}
         <motion.button
           onClick={onCancel}
@@ -99,7 +99,7 @@ function SendingOverlay() {
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
     >
       <div className="text-center px-8">
-        <motion.div 
+        <motion.div
           className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -119,7 +119,7 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
     const timer = setTimeout(onDismiss, 5000);
     return () => clearTimeout(timer);
   }, [onDismiss]);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -129,7 +129,7 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
     >
       <div className="text-center px-8">
         {/* Success checkmark */}
-        <motion.div 
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}
@@ -143,8 +143,8 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
             <Check className="w-16 h-16 text-white" strokeWidth={3} />
           </motion.div>
         </motion.div>
-        
-        <motion.h2 
+
+        <motion.h2
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -152,7 +152,7 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
         >
           Help is on the way!
         </motion.h2>
-        <motion.p 
+        <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -160,7 +160,7 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
         >
           Rescue teams have been notified of your location. Stay where you are if it's safe.
         </motion.p>
-        
+
         {/* Emergency Contact */}
         <motion.a
           href="tel:911"
@@ -174,7 +174,7 @@ function SuccessOverlay({ onDismiss }: { onDismiss: () => void }) {
           <Phone className="w-5 h-5" />
           Call Emergency Services
         </motion.a>
-        
+
         {/* Dismiss timer */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -195,7 +195,7 @@ export default function SOSButton() {
   const { sosCountdown, sosStatus } = useSelector((state: RootState) => state.sos);
   const user = useSelector((state: RootState) => state.auth.user);
   const token = useSelector((state: RootState) => state.auth.token);
-  
+
   const [isHolding, setIsHolding] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const socketRef = useRef<Socket | null>(null);
@@ -207,11 +207,11 @@ export default function SOSButton() {
       socketRef.current?.close();
     };
   }, []);
-  
+
   // Handle countdown
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    
+
     if (sosStatus === 'countdown' && sosCountdown > 0) {
       timer = setTimeout(() => {
         dispatch(decrementCountdown());
@@ -219,14 +219,14 @@ export default function SOSButton() {
     } else if (sosStatus === 'countdown' && sosCountdown === 0) {
       sendSosAlert();
     }
-    
+
     return () => clearTimeout(timer);
   }, [sosStatus, sosCountdown, dispatch]);
-  
+
   // Handle hold progress
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    
+
     if (isHolding) {
       interval = setInterval(() => {
         setHoldProgress(prev => {
@@ -241,10 +241,10 @@ export default function SOSButton() {
     } else {
       setHoldProgress(0);
     }
-    
+
     return () => clearInterval(interval);
   }, [isHolding, dispatch]);
-  
+
   const sendSosAlert = useCallback(async () => {
     // Get current location
     if (navigator.geolocation) {
@@ -266,10 +266,10 @@ export default function SOSButton() {
                 details: 'Emergency SOS from SafeRoute App'
               })
             });
-            
+
             if (response.ok) {
               const data = await response.json();
-              
+
               // Emit socket event for real-time sync
               if (socketRef.current) {
                 socketRef.current.emit('new_sos', {
@@ -278,7 +278,7 @@ export default function SOSButton() {
                   lng: position.coords.longitude
                 });
               }
-              
+
               dispatch(setSosSent());
             } else {
               throw new Error('Failed to send SOS');
@@ -299,20 +299,20 @@ export default function SOSButton() {
       dispatch(setSosSent());
     }
   }, [dispatch, token]);
-  
+
   const handleCancel = () => {
     dispatch(cancelSos());
     setIsHolding(false);
     setHoldProgress(0);
   };
-  
+
   const handleDismiss = () => {
     dispatch(cancelSos());
   };
-  
+
   // Don't show for managers
   if (user?.role === 'manager') return null;
-  
+
   return (
     <>
       {/* Main SOS Button */}
@@ -347,10 +347,10 @@ export default function SOSButton() {
               />
             </svg>
           )}
-          
+
           <AlertTriangle className="w-7 h-7 text-white" />
         </motion.button>
-        
+
         {/* Hold hint */}
         <AnimatePresence>
           {holdProgress > 0 && holdProgress < 100 && (
@@ -365,17 +365,17 @@ export default function SOSButton() {
           )}
         </AnimatePresence>
       </motion.div>
-      
+
       {/* Overlays */}
       <AnimatePresence>
         {sosStatus === 'countdown' && (
           <CountdownOverlay count={sosCountdown} onCancel={handleCancel} />
         )}
-        
+
         {sosStatus === 'sending' && (
           <SendingOverlay />
         )}
-        
+
         {sosStatus === 'sent' && (
           <SuccessOverlay onDismiss={handleDismiss} />
         )}

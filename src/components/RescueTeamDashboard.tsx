@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 // Animated background particle
 const BackgroundParticle = ({ delay }: { delay: number }) => (
@@ -153,8 +153,8 @@ function AlertCard({
         <div className="flex items-center gap-4">
           <motion.div
             className={`p-3 rounded-xl ${isPending ? 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/30' :
-                isAcknowledged ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30' :
-                  'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
+              isAcknowledged ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30' :
+                'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
               }`}
             animate={isPending ? { scale: [1, 1.05, 1] } : {}}
             transition={{ duration: 1, repeat: isPending ? Infinity : 0 }}
@@ -495,10 +495,10 @@ export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () =
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
               className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border max-w-sm ${notif.type === 'alert'
-                  ? 'bg-rose-500/90 border-rose-400/50 text-white'
-                  : notif.type === 'success'
-                    ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
-                    : 'bg-blue-500/90 border-blue-400/50 text-white'
+                ? 'bg-rose-500/90 border-rose-400/50 text-white'
+                : notif.type === 'success'
+                  ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
+                  : 'bg-blue-500/90 border-blue-400/50 text-white'
                 }`}
             >
               {notif.type === 'alert' ? (
@@ -575,8 +575,8 @@ export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () =
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsOnDuty(!isOnDuty)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${isOnDuty
-                      ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
-                      : 'bg-slate-800/80 border border-slate-700 text-slate-400'
+                    ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
+                    : 'bg-slate-800/80 border border-slate-700 text-slate-400'
                     }`}
                 >
                   <div className={`w-2 h-2 rounded-full ${isOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
@@ -647,17 +647,17 @@ export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () =
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${filter === tab
-                      ? tab === 'pending'
-                        ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30'
-                        : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                    ? tab === 'pending'
+                      ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30'
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                     }`}
                 >
                   {tab === 'all' ? 'All Alerts' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'pending' && pendingCount > 0 && (
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filter === tab
-                        ? 'bg-white/20 text-white'
-                        : 'bg-rose-500 text-white animate-pulse'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-rose-500 text-white animate-pulse'
                       }`}>
                       {pendingCount}
                     </span>

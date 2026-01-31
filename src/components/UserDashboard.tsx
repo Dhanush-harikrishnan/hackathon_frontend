@@ -33,8 +33,8 @@ import {
 import LiveMap from './LiveMap';
 import { formatDistanceToNow } from 'date-fns';
 
-const SOCKET_URL = 'http://localhost:3001';
-const API_URL = 'http://localhost:3001/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 interface SOSHistoryItem {
   _id: string;
@@ -48,12 +48,12 @@ interface SOSHistoryItem {
 const BackgroundParticle = ({ delay }: { delay: number }) => (
   <motion.div
     className="absolute w-1 h-1 bg-blue-500/30 rounded-full"
-    initial={{ 
-      x: Math.random() * 100 + '%', 
+    initial={{
+      x: Math.random() * 100 + '%',
       y: '100%',
-      opacity: 0 
+      opacity: 0
     }}
-    animate={{ 
+    animate={{
       y: '-100%',
       opacity: [0, 1, 0]
     }}
@@ -77,7 +77,7 @@ const StatusBadge = ({ status, size = 'sm' }: { status: string; size?: 'sm' | 'm
     RESOLVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', dot: 'bg-emerald-500', label: 'Resolved' },
   };
   const c = config[status as keyof typeof config] || config.CLOSED;
-  
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${c.bg} ${size === 'md' ? 'text-sm' : 'text-xs'}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
@@ -87,10 +87,10 @@ const StatusBadge = ({ status, size = 'sm' }: { status: string; size?: 'sm' | 'm
 };
 
 // Stats card component
-const StatsCard = ({ icon: Icon, value, label, color, trend }: { 
-  icon: any; 
-  value: number | string; 
-  label: string; 
+const StatsCard = ({ icon: Icon, value, label, color, trend }: {
+  icon: any;
+  value: number | string;
+  label: string;
   color: string;
   trend?: string;
 }) => (
@@ -288,8 +288,8 @@ export default function UserDashboard() {
   const pendingSOS = sosHistory.filter(s => s.status === 'PENDING' || s.status === 'ACKNOWLEDGED');
 
   // Calculate distance from user location (if available)
-  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
-  
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -302,10 +302,10 @@ export default function UserDashboard() {
     const R = 6371; // km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
@@ -314,7 +314,7 @@ export default function UserDashboard() {
     .filter(s => s.status === 'OPEN' && s.capacity.current < s.capacity.total)
     .map(s => ({
       ...s,
-      distance: userLocation 
+      distance: userLocation
         ? calculateDistance(userLocation.lat, userLocation.lng, s.location.coordinates[1], s.location.coordinates[0])
         : 999
     }))
@@ -343,13 +343,12 @@ export default function UserDashboard() {
               initial={{ opacity: 0, x: 100, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
-              className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-sm backdrop-blur-xl border ${
-                notif.type === 'success' 
-                  ? 'bg-emerald-500/90 border-emerald-400/50 text-white' 
-                  : notif.type === 'error' 
-                  ? 'bg-rose-500/90 border-rose-400/50 text-white' 
-                  : 'bg-blue-500/90 border-blue-400/50 text-white'
-              }`}
+              className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-sm backdrop-blur-xl border ${notif.type === 'success'
+                  ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
+                  : notif.type === 'error'
+                    ? 'bg-rose-500/90 border-rose-400/50 text-white'
+                    : 'bg-blue-500/90 border-blue-400/50 text-white'
+                }`}
             >
               {notif.type === 'success' ? (
                 <div className="p-1.5 bg-white/20 rounded-full">
@@ -361,7 +360,7 @@ export default function UserDashboard() {
                 </div>
               )}
               <span className="font-medium text-sm flex-1">{notif.message}</span>
-              <button 
+              <button
                 onClick={() => setNotifications(prev => prev.filter(n => n.id !== notif.id))}
                 className="p-1 hover:bg-white/20 rounded-full transition-colors"
               >
@@ -380,7 +379,7 @@ export default function UserDashboard() {
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <motion.div 
+                <motion.div
                   className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/30"
                   whileHover={{ scale: 1.05 }}
                 >
@@ -403,7 +402,7 @@ export default function UserDashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -452,29 +451,29 @@ export default function UserDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatsCard 
-                icon={Home} 
-                value={openShelters.length} 
-                label="Open Shelters" 
+              <StatsCard
+                icon={Home}
+                value={openShelters.length}
+                label="Open Shelters"
                 color="from-emerald-600/80 to-emerald-700/80"
                 trend="Live"
               />
-              <StatsCard 
-                icon={Users} 
-                value={totalCapacity} 
-                label="Available Spots" 
+              <StatsCard
+                icon={Users}
+                value={totalCapacity}
+                label="Available Spots"
                 color="from-blue-600/80 to-blue-700/80"
               />
-              <StatsCard 
-                icon={Zap} 
-                value={pendingSOS.length} 
-                label="Active Alerts" 
+              <StatsCard
+                icon={Zap}
+                value={pendingSOS.length}
+                label="Active Alerts"
                 color="from-rose-600/80 to-rose-700/80"
               />
-              <StatsCard 
-                icon={Shield} 
-                value={shelters.length} 
-                label="Total Shelters" 
+              <StatsCard
+                icon={Shield}
+                value={shelters.length}
+                label="Total Shelters"
                 color="from-indigo-600/80 to-indigo-700/80"
               />
             </div>
@@ -495,20 +494,18 @@ export default function UserDashboard() {
                   onClick={() => setActiveTab(tab.id as 'map' | 'shelters' | 'history')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
-                    activeTab === tab.id
+                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${activeTab === tab.id
                       ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
                       : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                  }`}
+                    }`}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
                   {tab.count > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      activeTab === tab.id 
-                        ? 'bg-white/20 text-white' 
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${activeTab === tab.id
+                        ? 'bg-white/20 text-white'
                         : 'bg-slate-600 text-slate-300'
-                    }`}>
+                      }`}>
                       {tab.count}
                     </span>
                   )}
@@ -609,7 +606,7 @@ export default function UserDashboard() {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Interactive Map */}
                   <div className="relative bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden" style={{ height: 400 }}>
                     <LiveMap shelters={shelters} userLocation={userLocation} />
@@ -630,18 +627,16 @@ export default function UserDashboard() {
                             whileHover={{ scale: 1.02 }}
                             className="flex items-center gap-3 p-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-xl transition-all"
                           >
-                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                              shelter.status === 'OPEN' ? 'bg-emerald-500' : 
-                              shelter.status === 'FULL' ? 'bg-amber-500' : 'bg-slate-500'
-                            }`} />
+                            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${shelter.status === 'OPEN' ? 'bg-emerald-500' :
+                                shelter.status === 'FULL' ? 'bg-amber-500' : 'bg-slate-500'
+                              }`} />
                             <div className="flex-1 min-w-0">
                               <p className="text-white font-medium text-sm truncate">{shelter.name}</p>
                               <p className="text-slate-400 text-xs truncate">{shelter.address}</p>
                             </div>
                             <div className="text-right flex-shrink-0">
-                              <p className={`text-sm font-bold ${
-                                available > 10 ? 'text-emerald-400' : available > 0 ? 'text-amber-400' : 'text-rose-400'
-                              }`}>{available}</p>
+                              <p className={`text-sm font-bold ${available > 10 ? 'text-emerald-400' : available > 0 ? 'text-amber-400' : 'text-rose-400'
+                                }`}>{available}</p>
                               <p className="text-xs text-slate-500">spots</p>
                             </div>
                             <Navigation className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -673,7 +668,7 @@ export default function UserDashboard() {
                   {shelters.map((shelter, index) => {
                     const available = shelter.capacity.total - shelter.capacity.current;
                     const pct = Math.round((shelter.capacity.current / shelter.capacity.total) * 100);
-                    
+
                     return (
                       <motion.div
                         key={shelter._id}
@@ -701,9 +696,8 @@ export default function UserDashboard() {
                             </p>
                           </div>
                           <div className="text-right bg-slate-700/50 rounded-xl p-3">
-                            <p className={`text-2xl font-bold ${
-                              pct >= 90 ? 'text-rose-400' : pct >= 70 ? 'text-amber-400' : 'text-emerald-400'
-                            }`}>
+                            <p className={`text-2xl font-bold ${pct >= 90 ? 'text-rose-400' : pct >= 70 ? 'text-amber-400' : 'text-emerald-400'
+                              }`}>
                               {available}
                             </p>
                             <p className="text-xs text-slate-400">spots left</p>
@@ -714,9 +708,8 @@ export default function UserDashboard() {
                         <div className="mb-4">
                           <div className="flex items-center justify-between text-xs mb-2">
                             <span className="text-slate-400">Capacity</span>
-                            <span className={`font-medium ${
-                              pct >= 90 ? 'text-rose-400' : pct >= 70 ? 'text-amber-400' : 'text-emerald-400'
-                            }`}>
+                            <span className={`font-medium ${pct >= 90 ? 'text-rose-400' : pct >= 70 ? 'text-amber-400' : 'text-emerald-400'
+                              }`}>
                               {pct}% Full
                             </span>
                           </div>
@@ -725,38 +718,34 @@ export default function UserDashboard() {
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ duration: 0.8, ease: 'easeOut' }}
-                              className={`h-full rounded-full ${
-                                pct >= 90 
-                                  ? 'bg-gradient-to-r from-rose-500 to-rose-400' 
-                                  : pct >= 70 
-                                  ? 'bg-gradient-to-r from-amber-500 to-amber-400' 
-                                  : 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                              }`}
+                              className={`h-full rounded-full ${pct >= 90
+                                  ? 'bg-gradient-to-r from-rose-500 to-rose-400'
+                                  : pct >= 70
+                                    ? 'bg-gradient-to-r from-amber-500 to-amber-400'
+                                    : 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                                }`}
                             />
                           </div>
                         </div>
 
                         {/* Resources */}
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
-                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
-                            shelter.resources.food 
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${shelter.resources.food
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                               : 'bg-slate-700/50 text-slate-500 border border-slate-600/30'
-                          }`}>
+                            }`}>
                             <Utensils className="w-3.5 h-3.5" />Food
                           </div>
-                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
-                            shelter.resources.water 
-                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${shelter.resources.water
+                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                               : 'bg-slate-700/50 text-slate-500 border border-slate-600/30'
-                          }`}>
+                            }`}>
                             <Droplets className="w-3.5 h-3.5" />Water
                           </div>
-                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
-                            shelter.resources.medical 
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${shelter.resources.medical
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                               : 'bg-slate-700/50 text-slate-500 border border-slate-600/30'
-                          }`}>
+                            }`}>
                             <Heart className="w-3.5 h-3.5" />Medical
                           </div>
                         </div>
@@ -838,33 +827,30 @@ export default function UserDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className={`relative overflow-hidden rounded-2xl border-2 p-5 transition-all ${
-                          sos.status === 'PENDING' 
-                            ? 'border-rose-500/50 bg-rose-500/10' 
-                            : sos.status === 'ACKNOWLEDGED' 
-                            ? 'border-blue-500/50 bg-blue-500/10' 
-                            : 'border-emerald-500/50 bg-emerald-500/10'
-                        }`}
+                        className={`relative overflow-hidden rounded-2xl border-2 p-5 transition-all ${sos.status === 'PENDING'
+                            ? 'border-rose-500/50 bg-rose-500/10'
+                            : sos.status === 'ACKNOWLEDGED'
+                              ? 'border-blue-500/50 bg-blue-500/10'
+                              : 'border-emerald-500/50 bg-emerald-500/10'
+                          }`}
                       >
                         {/* Animated background for active alerts */}
                         {(sos.status === 'PENDING' || sos.status === 'ACKNOWLEDGED') && (
                           <div className="absolute inset-0 overflow-hidden">
                             <motion.div
-                              className={`absolute -inset-full ${
-                                sos.status === 'PENDING' ? 'bg-rose-500/5' : 'bg-blue-500/5'
-                              }`}
-                              animate={{ 
-                                rotate: 360 
+                              className={`absolute -inset-full ${sos.status === 'PENDING' ? 'bg-rose-500/5' : 'bg-blue-500/5'
+                                }`}
+                              animate={{
+                                rotate: 360
                               }}
-                              transition={{ 
-                                duration: 10, 
-                                repeat: Infinity, 
-                                ease: 'linear' 
+                              transition={{
+                                duration: 10,
+                                repeat: Infinity,
+                                ease: 'linear'
                               }}
                               style={{
-                                background: `conic-gradient(from 0deg, transparent, ${
-                                  sos.status === 'PENDING' ? 'rgba(244, 63, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)'
-                                }, transparent)`
+                                background: `conic-gradient(from 0deg, transparent, ${sos.status === 'PENDING' ? 'rgba(244, 63, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)'
+                                  }, transparent)`
                               }}
                             />
                           </div>
@@ -878,17 +864,17 @@ export default function UserDashboard() {
                               {formatDistanceToNow(new Date(sos.timestamp), { addSuffix: true })}
                             </span>
                           </div>
-                          
+
                           <p className="text-slate-200 text-sm mb-3 line-clamp-2">
                             {sos.details || 'Emergency SOS Alert'}
                           </p>
-                          
+
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-slate-500 flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5" />
                               {sos.location.coordinates[1].toFixed(4)}, {sos.location.coordinates[0].toFixed(4)}
                             </p>
-                            
+
                             {sos.status === 'ACKNOWLEDGED' && (
                               <span className="text-xs text-blue-400 flex items-center gap-1.5 font-medium">
                                 <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
@@ -930,14 +916,14 @@ export default function UserDashboard() {
                       <motion.div
                         key={i}
                         className="absolute inset-0 rounded-full border-2 border-rose-500/40"
-                        animate={{ 
-                          scale: [1, 2], 
-                          opacity: [0.6, 0] 
+                        animate={{
+                          scale: [1, 2],
+                          opacity: [0.6, 0]
                         }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          delay: i * 0.5 
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          delay: i * 0.5
                         }}
                       />
                     ))}
@@ -946,12 +932,12 @@ export default function UserDashboard() {
                       <span className="text-6xl font-bold text-white">{sosCountdown}</span>
                     </div>
                   </div>
-                  
+
                   <h2 className="text-2xl font-bold text-white mb-2">Sending SOS Alert</h2>
                   <p className="text-slate-400 text-sm mb-8 max-w-xs mx-auto">
                     Emergency services will be notified with your current location
                   </p>
-                  
+
                   <button
                     onClick={cancelSOS}
                     className="w-full py-4 bg-slate-700 hover:bg-slate-600 rounded-xl text-white font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-600"
@@ -974,7 +960,7 @@ export default function UserDashboard() {
                 </div>
               ) : (
                 <div className="text-center">
-                  <motion.div 
+                  <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', bounce: 0.5 }}

@@ -31,7 +31,7 @@ import {
   X
 } from 'lucide-react';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 // Animated background particle
 const BackgroundParticle = ({ delay }: { delay: number }) => (
@@ -132,8 +132,8 @@ function ResourceToggle({
       whileTap={{ scale: 0.99 }}
       onClick={onToggle}
       className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 border ${active
-          ? `${color} border-white/10 shadow-lg`
-          : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
+        ? `${color} border-white/10 shadow-lg`
+        : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800'
         }`}
     >
       <div className={`p-3 rounded-xl ${active ? 'bg-white/20' : 'bg-slate-700/50'}`}>
@@ -244,8 +244,8 @@ function ShelterCard({
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
       className={`group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 cursor-pointer transition-all duration-300 border ${isSelected
-          ? 'border-emerald-500/50 bg-emerald-500/5 shadow-lg shadow-emerald-500/10'
-          : 'border-slate-700/50 hover:border-emerald-500/30'
+        ? 'border-emerald-500/50 bg-emerald-500/5 shadow-lg shadow-emerald-500/10'
+        : 'border-slate-700/50 hover:border-emerald-500/30'
         }`}
     >
       {isSelected && (
@@ -278,7 +278,7 @@ function ShelterCard({
           </span>
         </div>
         <span className={`text-sm font-bold ${occupancy >= 90 ? 'text-rose-400' :
-            occupancy >= 70 ? 'text-amber-400' : 'text-emerald-400'
+          occupancy >= 70 ? 'text-amber-400' : 'text-emerald-400'
           }`}>
           {occupancy}% full
         </span>
@@ -413,7 +413,7 @@ export default function ManagerDashboard({ onBack: _onBack }: { onBack?: () => v
     setIsSaving(true);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/shelters/${selectedShelter._id}/capacity`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/shelters/${selectedShelter._id}/capacity`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -462,7 +462,7 @@ export default function ManagerDashboard({ onBack: _onBack }: { onBack?: () => v
     }));
 
     try {
-      const response = await fetch(`http://localhost:3001/api/shelters/${selectedShelter._id}/resources`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/shelters/${selectedShelter._id}/resources`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -515,12 +515,12 @@ export default function ManagerDashboard({ onBack: _onBack }: { onBack?: () => v
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
               className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border max-w-sm ${notif.type === 'alert'
-                  ? 'bg-rose-500/90 border-rose-400/50 text-white'
-                  : notif.type === 'success'
-                    ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
-                    : notif.type === 'error'
-                      ? 'bg-red-500/90 border-red-400/50 text-white'
-                      : 'bg-blue-500/90 border-blue-400/50 text-white'
+                ? 'bg-rose-500/90 border-rose-400/50 text-white'
+                : notif.type === 'success'
+                  ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
+                  : notif.type === 'error'
+                    ? 'bg-red-500/90 border-red-400/50 text-white'
+                    : 'bg-blue-500/90 border-blue-400/50 text-white'
                 }`}
             >
               {notif.type === 'alert' ? (
@@ -752,10 +752,10 @@ export default function ManagerDashboard({ onBack: _onBack }: { onBack?: () => v
                       onClick={handleSaveCapacity}
                       disabled={isSaving}
                       className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${isSaving
-                          ? 'bg-slate-600 text-slate-400 cursor-wait'
-                          : capacityInput !== selectedShelter.capacity.current
-                            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/30'
-                            : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 border border-slate-600/50'
+                        ? 'bg-slate-600 text-slate-400 cursor-wait'
+                        : capacityInput !== selectedShelter.capacity.current
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-lg shadow-emerald-500/30'
+                          : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 border border-slate-600/50'
                         }`}
                     >
                       {isSaving ? (
