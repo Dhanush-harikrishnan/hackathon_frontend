@@ -14,7 +14,7 @@ import { setOfflineMode } from './store/slices/sheltersSlice';
 import { useEffect, useState } from 'react';
 import { useSocket } from './hooks/useSocket';
 import OfflineBanner from './components/OfflineBanner';
-import P2PSOSBeacon from './components/P2PSOSBeacon';
+import EmergencySOS from './components/EmergencySOS';
 
 // Auth Page - Manages Login/Register flow
 function AuthPage() {
@@ -401,8 +401,8 @@ function App() {
     <div className={`min-h-screen ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
       {/* Emergency Offline Mode Banner - Shows when network is unavailable */}
       <OfflineBanner />
-      {/* P2P SOS Beacon - Bottom left floating widget for mesh network */}
-      {isAuthenticated && <P2PSOSBeacon />}
+      {/* ONE-TAP Emergency SOS - Big button, auto-broadcasts to nearby devices */}
+      {isAuthenticated && <EmergencySOS />}
       <AnimatePresence mode="wait">
         {!isAuthenticated ? (
           <AuthPage key="auth-page" />
