@@ -1,5 +1,47 @@
 import { useEffect, useRef } from 'react';
 
+// Type declarations for Google Maps
+declare global {
+  interface Window {
+    google?: {
+      maps: {
+        Map: new (element: HTMLElement, options: google.maps.MapOptions) => google.maps.Map;
+        Marker: new (options: google.maps.MarkerOptions) => google.maps.Marker;
+        InfoWindow: new (options: google.maps.InfoWindowOptions) => google.maps.InfoWindow;
+      };
+    };
+  }
+}
+
+declare namespace google.maps {
+  interface MapOptions {
+    center: { lat: number; lng: number };
+    zoom: number;
+    mapTypeControl?: boolean;
+    streetViewControl?: boolean;
+    fullscreenControl?: boolean;
+  }
+  interface Map {
+    setCenter(center: { lat: number; lng: number }): void;
+  }
+  interface MarkerOptions {
+    position: { lat: number; lng: number };
+    map: Map;
+    title?: string;
+    icon?: { url: string };
+  }
+  interface Marker {
+    setMap(map: Map | null): void;
+    addListener(event: string, callback: () => void): void;
+  }
+  interface InfoWindowOptions {
+    content: string;
+  }
+  interface InfoWindow {
+    open(map: Map, marker: Marker): void;
+  }
+}
+
 interface Shelter {
   _id: string;
   name: string;
@@ -35,7 +77,7 @@ export default function LiveMap({ shelters, userLocation }: LiveMapProps) {
     markers.current = [];
     // Add shelter markers
     shelters.forEach(shelter => {
-      const marker = new window.google.maps.Marker({
+      const marker = new window.google!.maps.Marker({
         position: {
           lat: shelter.location.coordinates[1],
           lng: shelter.location.coordinates[0],
@@ -47,11 +89,11 @@ export default function LiveMap({ shelters, userLocation }: LiveMapProps) {
             shelter.status === 'OPEN'
               ? 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
               : shelter.status === 'FULL'
-              ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
-              : 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+                : 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
         },
       });
-      const info = new window.google.maps.InfoWindow({
+      const info = new window.google!.maps.InfoWindow({
         content: `<div><strong>${shelter.name}</strong><br/>${shelter.address}<br/>${shelter.capacity.total - shelter.capacity.current} spots left</div>`
       });
       marker.addListener('click', () => info.open(mapInstance.current!, marker));
@@ -59,7 +101,7 @@ export default function LiveMap({ shelters, userLocation }: LiveMapProps) {
     });
     // Add user marker
     if (userLocation) {
-      const userMarker = new window.google.maps.Marker({
+      const userMarker = new window.google!.maps.Marker({
         position: userLocation,
         map: mapInstance.current!,
         title: 'Your Location',

@@ -3,15 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AppDispatch, RootState } from '../store';
 import { register, clearError } from '../store/slices/authSlice';
-import { 
-  Eye, 
-  EyeOff, 
-  UserPlus, 
+import {
+  Eye,
+  EyeOff,
+  UserPlus,
   AlertCircle,
   Loader2,
   Shield,
-  Users,
-  Truck,
   User,
   Check,
   Lock,
@@ -29,25 +27,25 @@ interface RegisterPageProps {
 type RoleOption = 'user' | 'manager' | 'rescue_team';
 
 const roleOptions: { id: RoleOption; label: string; description: string; icon: React.ElementType; color: string; gradient: string }[] = [
-  { 
-    id: 'user', 
-    label: 'Public User', 
+  {
+    id: 'user',
+    label: 'Public User',
     description: 'Find shelters, send SOS alerts, stay informed',
     icon: User,
     color: 'blue',
     gradient: 'from-blue-500 to-cyan-500'
   },
-  { 
-    id: 'manager', 
-    label: 'Shelter Manager', 
+  {
+    id: 'manager',
+    label: 'Shelter Manager',
     description: 'Manage shelter capacity, resources & operations',
     icon: Building2,
     color: 'emerald',
     gradient: 'from-emerald-500 to-teal-500'
   },
-  { 
-    id: 'rescue_team', 
-    label: 'Rescue Team', 
+  {
+    id: 'rescue_team',
+    label: 'Rescue Team',
     description: 'Respond to emergencies & coordinate rescues',
     icon: Siren,
     color: 'rose',
@@ -80,13 +78,13 @@ const PasswordStrength = ({ password }: { password: string }) => {
   const getStrength = () => {
     if (password.length === 0) return { level: 0, label: '', color: '' };
     if (password.length < 6) return { level: 1, label: 'Too short', color: 'bg-rose-500' };
-    
+
     let score = 0;
     if (password.length >= 8) score++;
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
     if (/\d/.test(password)) score++;
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-    
+
     if (score <= 1) return { level: 2, label: 'Weak', color: 'bg-orange-500' };
     if (score === 2) return { level: 3, label: 'Fair', color: 'bg-yellow-500' };
     if (score === 3) return { level: 4, label: 'Good', color: 'bg-emerald-500' };
@@ -102,9 +100,8 @@ const PasswordStrength = ({ password }: { password: string }) => {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-              i <= strength.level ? strength.color : 'bg-slate-700'
-            }`}
+            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength.level ? strength.color : 'bg-slate-700'
+              }`}
           />
         ))}
       </div>
@@ -118,7 +115,7 @@ const PasswordStrength = ({ password }: { password: string }) => {
 export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error } = useSelector((state: RootState) => state.auth);
-  
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -139,27 +136,27 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError(null);
-    
+
     if (!username.trim()) {
       setValidationError('Username is required');
       return;
     }
-    
+
     if (username.trim().length < 3) {
       setValidationError('Username must be at least 3 characters');
       return;
     }
-    
+
     if (!password) {
       setValidationError('Password is required');
       return;
     }
-    
+
     if (password.length < 6) {
       setValidationError('Password must be at least 6 characters');
       return;
     }
-    
+
     if (password !== confirmPassword) {
       setValidationError('Passwords do not match');
       return;
@@ -169,7 +166,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
       setValidationError('You must agree to the terms and conditions');
       return;
     }
-    
+
     dispatch(clearError());
     dispatch(register({ username: username.trim(), password, role }));
   };
@@ -194,12 +191,13 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
   const isStep1Valid = username.trim().length >= 3 && password.length >= 6 && password === confirmPassword;
   const isFormValid = isStep1Valid && agreeTerms;
 
-  const selectedRole = roleOptions.find(r => r.id === role);
+  const _selectedRole = roleOptions.find(r => r.id === role);
+  void _selectedRole; // Used for potential future role-specific styling
 
   return (
     <div className="fixed inset-0 flex bg-slate-950 overflow-hidden">
       {/* Left Panel - Branding */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
@@ -211,13 +209,13 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
         </div>
-        
+
         {/* Floating Particles */}
         <FloatingParticle delay={0} duration={6} size={120} x={10} y={20} />
         <FloatingParticle delay={1} duration={8} size={80} x={70} y={60} />
         <FloatingParticle delay={2} duration={7} size={100} x={30} y={70} />
         <FloatingParticle delay={0.5} duration={9} size={60} x={80} y={15} />
-        
+
         {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.02]">
           <div className="absolute inset-0" style={{
@@ -229,7 +227,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
         {/* Content */}
         <div className="relative z-10">
           {/* Logo */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -260,7 +258,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
               </span>
             </h2>
             <p className="text-lg text-slate-400 leading-relaxed max-w-lg mb-10">
-              Whether you're seeking shelter, managing resources, or saving lives — 
+              Whether you're seeking shelter, managing resources, or saving lives —
               SafeRoute connects you to the help you need in times of crisis.
             </p>
           </motion.div>
@@ -276,16 +274,14 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
-                  className={`p-4 rounded-2xl border transition-all duration-300 ${
-                    isSelected 
-                      ? `bg-gradient-to-r ${opt.gradient} border-transparent shadow-lg` 
-                      : 'bg-white/5 border-white/10 hover:bg-white/10'
-                  }`}
+                  className={`p-4 rounded-2xl border transition-all duration-300 ${isSelected
+                    ? `bg-gradient-to-r ${opt.gradient} border-transparent shadow-lg`
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                    }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      isSelected ? 'bg-white/20' : `bg-${opt.color}-500/20`
-                    }`}>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? 'bg-white/20' : `bg-${opt.color}-500/20`
+                      }`}>
                       <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : `text-${opt.color}-400`}`} />
                     </div>
                     <div className="flex-1">
@@ -307,7 +303,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
         </div>
 
         {/* Footer Quote */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
@@ -321,7 +317,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
       </motion.div>
 
       {/* Right Panel - Register Form */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
@@ -329,10 +325,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
       >
         {/* Mobile Background */}
         <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-emerald-600/10 via-slate-950 to-cyan-600/10" />
-        
+
         <div className="w-full max-w-md relative z-10 py-8">
           {/* Mobile Logo */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="lg:hidden flex items-center justify-center gap-3 mb-10"
@@ -386,8 +382,8 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
               {step === 1 ? 'Create your account' : 'Choose your role'}
             </h2>
             <p className="text-slate-400">
-              {step === 1 
-                ? 'Fill in your details to get started' 
+              {step === 1
+                ? 'Fill in your details to get started'
                 : 'Select how you\'ll use SafeRoute'}
             </p>
           </motion.div>
@@ -429,11 +425,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     <label htmlFor="username" className="block text-sm font-medium text-slate-300">
                       Username
                     </label>
-                    <div className={`relative rounded-xl transition-all duration-300 ${
-                      focusedField === 'username' 
-                        ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10' 
-                        : ''
-                    }`}>
+                    <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'username'
+                      ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10'
+                      : ''
+                      }`}>
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                         <User className="w-5 h-5" />
                       </div>
@@ -450,7 +445,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                         autoComplete="username"
                       />
                       {username.length >= 3 && (
-                        <motion.div 
+                        <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           className="absolute right-4 top-1/2 -translate-y-1/2"
@@ -466,11 +461,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     <label htmlFor="password" className="block text-sm font-medium text-slate-300">
                       Password
                     </label>
-                    <div className={`relative rounded-xl transition-all duration-300 ${
-                      focusedField === 'password' 
-                        ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10' 
-                        : ''
-                    }`}>
+                    <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'password'
+                      ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10'
+                      : ''
+                      }`}>
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                         <Lock className="w-5 h-5" />
                       </div>
@@ -502,11 +496,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300">
                       Confirm Password
                     </label>
-                    <div className={`relative rounded-xl transition-all duration-300 ${
-                      focusedField === 'confirmPassword' 
-                        ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10' 
-                        : ''
-                    }`}>
+                    <div className={`relative rounded-xl transition-all duration-300 ${focusedField === 'confirmPassword'
+                      ? 'ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/10'
+                      : ''
+                      }`}>
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                         <Lock className="w-5 h-5" />
                       </div>
@@ -531,7 +524,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                       </button>
                     </div>
                     {confirmPassword && password === confirmPassword && (
-                      <motion.p 
+                      <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className="text-xs text-emerald-400 flex items-center gap-1"
@@ -548,11 +541,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     disabled={!isStep1Valid}
                     whileHover={{ scale: isStep1Valid ? 1.01 : 1 }}
                     whileTap={{ scale: isStep1Valid ? 0.99 : 1 }}
-                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 ${
-                      isStep1Valid
-                        ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
-                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    }`}
+                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 ${isStep1Valid
+                      ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      }`}
                   >
                     <span>Continue</span>
                     <Sparkles className="w-5 h-5" />
@@ -571,7 +563,7 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     {roleOptions.map((option) => {
                       const Icon = option.icon;
                       const isSelected = role === option.id;
-                      
+
                       return (
                         <motion.button
                           key={option.id}
@@ -579,15 +571,13 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                           onClick={() => setRole(option.id)}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`relative w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 ${
-                            isSelected 
-                              ? `bg-gradient-to-r ${option.gradient} border-transparent shadow-lg` 
-                              : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600/50'
-                          }`}
+                          className={`relative w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all duration-300 ${isSelected
+                            ? `bg-gradient-to-r ${option.gradient} border-transparent shadow-lg`
+                            : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600/50'
+                            }`}
                         >
-                          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                            isSelected ? 'bg-white/20' : 'bg-slate-800'
-                          }`}>
+                          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${isSelected ? 'bg-white/20' : 'bg-slate-800'
+                            }`}>
                             <Icon className={`w-7 h-7 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
                           </div>
                           <div className="flex-1 text-left">
@@ -598,11 +588,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                               {option.description}
                             </p>
                           </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                            isSelected 
-                              ? 'bg-white border-white' 
-                              : 'border-slate-600'
-                          }`}>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                            ? 'bg-white border-white'
+                            : 'border-slate-600'
+                            }`}>
                             {isSelected && <Check className="w-4 h-4 text-emerald-600" />}
                           </div>
                         </motion.button>
@@ -619,18 +608,17 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                         onChange={(e) => setAgreeTerms(e.target.checked)}
                         className="sr-only"
                       />
-                      <div className={`w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center ${
-                        agreeTerms 
-                          ? 'bg-emerald-500 border-emerald-500' 
-                          : 'border-slate-600 group-hover:border-slate-500'
-                      }`}>
+                      <div className={`w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center ${agreeTerms
+                        ? 'bg-emerald-500 border-emerald-500'
+                        : 'border-slate-600 group-hover:border-slate-500'
+                        }`}>
                         {agreeTerms && (
-                          <motion.svg 
+                          <motion.svg
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="w-3 h-3 text-white" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
                             stroke="currentColor"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -649,11 +637,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
                     disabled={loading || !isFormValid}
                     whileHover={{ scale: isFormValid && !loading ? 1.01 : 1 }}
                     whileTap={{ scale: isFormValid && !loading ? 0.99 : 1 }}
-                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 ${
-                      isFormValid && !loading
-                        ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
-                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    }`}
+                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 ${isFormValid && !loading
+                      ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      }`}
                   >
                     {loading ? (
                       <>

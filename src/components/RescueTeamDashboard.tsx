@@ -5,10 +5,10 @@ import { io, Socket } from 'socket.io-client';
 import type { RootState, AppDispatch } from '../store';
 import { realtimeAlertUpdate, setAlerts } from '../store/slices/sosSlice';
 import { fetchSOSAlerts, acknowledgeSOSAlert, resolveSOSAlert } from '../store/slices/apiSlice';
-import { 
-  AlertTriangle, 
-  MapPin, 
-  Clock, 
+import {
+  AlertTriangle,
+  MapPin,
+  Clock,
   User,
   CheckCircle2,
   Navigation,
@@ -48,7 +48,7 @@ const StatusBadge = ({ status, size = 'sm' }: { status: string; size?: 'sm' | 'm
   };
   const c = config[status as keyof typeof config] || config.pending;
   const sizeClasses = size === 'lg' ? 'px-4 py-2 text-sm' : size === 'md' ? 'px-3 py-1.5 text-xs' : 'px-2.5 py-1 text-xs';
-  
+
   return (
     <span className={`inline-flex items-center gap-2 rounded-full font-semibold ${c.bg} ${sizeClasses}`}>
       <span className={`w-2 h-2 rounded-full ${c.dot}`} />
@@ -58,14 +58,14 @@ const StatusBadge = ({ status, size = 'sm' }: { status: string; size?: 'sm' | 'm
 };
 
 // Stats Card Component
-function StatsCard({ 
-  icon: Icon, 
-  label, 
-  value, 
+function StatsCard({
+  icon: Icon,
+  label,
+  value,
   color,
   pulse = false,
   delay = 0
-}: { 
+}: {
   icon: React.ElementType;
   label: string;
   value: number;
@@ -74,7 +74,7 @@ function StatsCard({
   delay?: number;
 }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
@@ -95,15 +95,15 @@ function StatsCard({
 }
 
 // Alert Card Component
-function AlertCard({ 
-  alert, 
-  onAcknowledge, 
+function AlertCard({
+  alert,
+  onAcknowledge,
   onResolve,
   onNavigate,
   isExpanded,
   onToggleExpand,
   index
-}: { 
+}: {
   alert: RootState['sos']['alerts'][0];
   onAcknowledge: () => void;
   onResolve: () => void;
@@ -114,19 +114,19 @@ function AlertCard({
 }) {
   const isPending = alert.status === 'pending';
   const isAcknowledged = alert.status === 'acknowledged';
-  
+
   const getBorderColor = () => {
     if (isPending) return 'border-rose-500/50 hover:border-rose-500';
     if (isAcknowledged) return 'border-blue-500/50 hover:border-blue-500';
     return 'border-emerald-500/50 hover:border-emerald-500';
   };
-  
+
   const getBgColor = () => {
     if (isPending) return 'bg-rose-500/5';
     if (isAcknowledged) return 'bg-blue-500/5';
     return 'bg-emerald-500/5';
   };
-  
+
   return (
     <motion.div
       layout
@@ -151,12 +151,11 @@ function AlertCard({
       {/* Header */}
       <div className="relative flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <motion.div 
-            className={`p-3 rounded-xl ${
-              isPending ? 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/30' : 
-              isAcknowledged ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30' : 
-              'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
-            }`}
+          <motion.div
+            className={`p-3 rounded-xl ${isPending ? 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/30' :
+                isAcknowledged ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30' :
+                  'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
+              }`}
             animate={isPending ? { scale: [1, 1.05, 1] } : {}}
             transition={{ duration: 1, repeat: isPending ? Infinity : 0 }}
           >
@@ -172,7 +171,7 @@ function AlertCard({
             <div className="flex items-center gap-3 mb-1">
               <StatusBadge status={alert.status} size="md" />
               {isPending && (
-                <motion.span 
+                <motion.span
                   className="text-xs text-rose-400 font-bold bg-rose-500/20 px-2 py-0.5 rounded-full"
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 0.8, repeat: Infinity }}
@@ -187,7 +186,7 @@ function AlertCard({
             </p>
           </div>
         </div>
-        
+
         {/* User info */}
         <div className="text-right">
           <p className="text-white font-semibold flex items-center gap-2 justify-end">
@@ -197,7 +196,7 @@ function AlertCard({
           <p className="text-xs text-slate-500 mt-1 font-mono">ID: {alert._id.slice(-8)}</p>
         </div>
       </div>
-      
+
       {/* Location */}
       <div className="flex items-center gap-2 text-slate-300 text-sm mb-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
         <MapPin className="w-4 h-4 text-rose-400 flex-shrink-0" />
@@ -209,7 +208,7 @@ function AlertCard({
           <ExternalLink className="w-4 h-4 text-slate-400" />
         </button>
       </div>
-      
+
       {/* Notes */}
       {alert.notes && (
         <div className="flex items-start gap-3 text-slate-300 text-sm mb-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/30">
@@ -217,7 +216,7 @@ function AlertCard({
           <span className="leading-relaxed">{alert.notes}</span>
         </div>
       )}
-      
+
       {/* Expanded Content */}
       <AnimatePresence>
         {isExpanded && (
@@ -241,7 +240,7 @@ function AlertCard({
                     Acknowledge Alert
                   </motion.button>
                 )}
-                
+
                 {(isPending || isAcknowledged) && (
                   <>
                     <motion.button
@@ -253,7 +252,7 @@ function AlertCard({
                       <Navigation className="w-5 h-5" />
                       Navigate
                     </motion.button>
-                    
+
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -266,10 +265,10 @@ function AlertCard({
                   </>
                 )}
               </div>
-              
+
               {/* Quick Contact */}
               <div className="mt-4 flex gap-3">
-                <a 
+                <a
                   href="tel:911"
                   onClick={(e) => e.stopPropagation()}
                   className="flex-1 py-3 rounded-xl bg-slate-800/50 text-slate-300 text-sm font-medium flex items-center justify-center gap-2 hover:bg-slate-700/50 transition-colors border border-slate-700/50"
@@ -292,7 +291,7 @@ function AlertCard({
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Expand indicator */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
         <motion.div
@@ -306,11 +305,12 @@ function AlertCard({
 }
 
 // Main Rescue Dashboard Component
-export default function RescueTeamDashboard({ onBack }: { onBack?: () => void }) {
+export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () => void }) {
+  void _onBack; // Reserved for future navigation
   const dispatch = useDispatch<AppDispatch>();
   const alerts = useSelector((state: RootState) => state.sos.alerts);
   const user = useSelector((state: RootState) => state.auth.user);
-  
+
   const [filter, setFilter] = useState<'all' | 'pending' | 'acknowledged' | 'resolved'>('all');
   const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
   const [isOnDuty, setIsOnDuty] = useState(true);
@@ -319,25 +319,25 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'alert' | 'success' | 'info' }>>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   // Socket connection
   useEffect(() => {
     const newSocket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
-    
+
     newSocket.on('connect', () => {
       setIsConnected(true);
       newSocket.emit('join_room', 'rescue_team_room');
     });
-    
+
     newSocket.on('disconnect', () => setIsConnected(false));
-    
+
     newSocket.on('new_emergency', (data: { sos: typeof alerts[0] }) => {
       dispatch(realtimeAlertUpdate(data.sos));
       setLastUpdate(new Date());
       addNotification('🚨 New SOS Alert received!', 'alert');
       playAlertSound();
     });
-    
+
     newSocket.on('sos_resolved', (data: { sosId: string }) => {
       const alert = alerts.find(a => a._id === data.sosId);
       if (alert) {
@@ -345,7 +345,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
       }
       setLastUpdate(new Date());
     });
-    
+
     setSocket(newSocket);
     return () => { newSocket.close(); };
   }, [dispatch]);
@@ -367,7 +367,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
       }
     };
     loadAlerts();
-    
+
     const interval = setInterval(loadAlerts, 15000);
     return () => clearInterval(interval);
   }, [dispatch]);
@@ -410,68 +410,68 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
       console.log('Audio not supported');
     }
   };
-  
+
   // Calculate stats
   const pendingCount = alerts.filter(a => a.status === 'pending').length;
   const acknowledgedCount = alerts.filter(a => a.status === 'acknowledged').length;
   const resolvedCount = alerts.filter(a => a.status === 'resolved').length;
-  
+
   // Filter alerts
-  const filteredAlerts = filter === 'all' 
-    ? alerts 
+  const filteredAlerts = filter === 'all'
+    ? alerts
     : alerts.filter(a => a.status === filter);
-  
+
   // Sort alerts: pending first, then by timestamp
   const sortedAlerts = [...filteredAlerts].sort((a, b) => {
     if (a.status === 'pending' && b.status !== 'pending') return -1;
     if (a.status !== 'pending' && b.status === 'pending') return 1;
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });
-  
+
   const handleAcknowledge = async (alertId: string) => {
     const alert = alerts.find(a => a._id === alertId);
     if (!alert) return;
-    
+
     dispatch(realtimeAlertUpdate({ ...alert, status: 'acknowledged' }));
-    
+
     try {
       await dispatch(acknowledgeSOSAlert(alertId)).unwrap();
-      
+
       if (socket && isConnected) {
         socket.emit('acknowledge_sos', { sosId: alertId });
       }
-      
+
       addNotification('Alert acknowledged successfully', 'success');
     } catch (error) {
       dispatch(realtimeAlertUpdate(alert));
       addNotification('Failed to acknowledge alert', 'alert');
     }
   };
-  
+
   const handleResolve = async (alertId: string) => {
     const alert = alerts.find(a => a._id === alertId);
     if (!alert) return;
-    
+
     dispatch(realtimeAlertUpdate({ ...alert, status: 'resolved' }));
-    
+
     try {
       await dispatch(resolveSOSAlert(alertId)).unwrap();
-      
+
       if (socket && isConnected) {
         socket.emit('resolve_sos', { sosId: alertId });
       }
-      
+
       addNotification('Alert resolved successfully', 'success');
     } catch (error) {
       dispatch(realtimeAlertUpdate(alert));
       addNotification('Failed to resolve alert', 'alert');
     }
   };
-  
+
   const handleNavigate = (alert: RootState['sos']['alerts'][0]) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.lat},${alert.lng}`, '_blank');
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
       {/* Animated background */}
@@ -480,7 +480,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
           <BackgroundParticle key={i} delay={i * 0.7} />
         ))}
       </div>
-      
+
       {/* Gradient orbs */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -494,13 +494,12 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
               initial={{ opacity: 0, x: 100, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 100, scale: 0.9 }}
-              className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border max-w-sm ${
-                notif.type === 'alert' 
-                  ? 'bg-rose-500/90 border-rose-400/50 text-white' 
-                  : notif.type === 'success' 
-                  ? 'bg-emerald-500/90 border-emerald-400/50 text-white' 
-                  : 'bg-blue-500/90 border-blue-400/50 text-white'
-              }`}
+              className={`px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border max-w-sm ${notif.type === 'alert'
+                  ? 'bg-rose-500/90 border-rose-400/50 text-white'
+                  : notif.type === 'success'
+                    ? 'bg-emerald-500/90 border-emerald-400/50 text-white'
+                    : 'bg-blue-500/90 border-blue-400/50 text-white'
+                }`}
             >
               {notif.type === 'alert' ? (
                 <div className="p-1.5 bg-white/20 rounded-full">
@@ -516,7 +515,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                 </div>
               )}
               <span className="font-medium text-sm flex-1">{notif.message}</span>
-              <button 
+              <button
                 onClick={() => setNotifications(prev => prev.filter(n => n.id !== notif.id))}
                 className="p-1 hover:bg-white/20 rounded-full transition-colors"
               >
@@ -535,7 +534,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <motion.div 
+                <motion.div
                   className="p-3 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl shadow-lg shadow-rose-500/30"
                   whileHover={{ scale: 1.05 }}
                 >
@@ -558,7 +557,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -569,21 +568,19 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                 >
                   <RefreshCw className={`w-5 h-5 text-slate-300 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </motion.button>
-                
+
                 {/* Duty Status Toggle */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsOnDuty(!isOnDuty)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
-                    isOnDuty 
-                      ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400' 
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${isOnDuty
+                      ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
                       : 'bg-slate-800/80 border border-slate-700 text-slate-400'
-                  }`}
+                    }`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${
-                    isOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
-                  }`} />
+                  <div className={`w-2 h-2 rounded-full ${isOnDuty ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'
+                    }`} />
                   <span className="font-medium text-sm">{isOnDuty ? 'On Duty' : 'Off Duty'}</span>
                 </motion.button>
               </div>
@@ -610,27 +607,27 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                 </div>
               </div>
             </motion.div>
-          
+
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <StatsCard 
-                icon={AlertTriangle} 
-                label="Pending" 
+              <StatsCard
+                icon={AlertTriangle}
+                label="Pending"
                 value={pendingCount}
                 color="bg-gradient-to-br from-rose-600/80 to-rose-700/80"
                 pulse={pendingCount > 0}
                 delay={0}
               />
-              <StatsCard 
-                icon={Activity} 
-                label="In Progress" 
+              <StatsCard
+                icon={Activity}
+                label="In Progress"
                 value={acknowledgedCount}
                 color="bg-gradient-to-br from-blue-600/80 to-blue-700/80"
                 delay={0.1}
               />
-              <StatsCard 
-                icon={CheckCircle2} 
-                label="Resolved" 
+              <StatsCard
+                icon={CheckCircle2}
+                label="Resolved"
                 value={resolvedCount}
                 color="bg-gradient-to-br from-emerald-600/80 to-emerald-700/80"
                 delay={0.2}
@@ -638,7 +635,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
             </div>
           </div>
         </div>
-        
+
         {/* Filter Tabs */}
         <div className="px-6 -mt-2">
           <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-1.5 border border-slate-700/50">
@@ -649,21 +646,19 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                   onClick={() => setFilter(tab)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                    filter === tab
-                      ? tab === 'pending' 
+                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${filter === tab
+                      ? tab === 'pending'
                         ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30'
                         : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
                       : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                  }`}
+                    }`}
                 >
                   {tab === 'all' ? 'All Alerts' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   {tab === 'pending' && pendingCount > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      filter === tab 
-                        ? 'bg-white/20 text-white' 
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${filter === tab
+                        ? 'bg-white/20 text-white'
                         : 'bg-rose-500 text-white animate-pulse'
-                    }`}>
+                      }`}>
                       {pendingCount}
                     </span>
                   )}
@@ -672,14 +667,14 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
             </div>
           </div>
         </div>
-        
+
         {/* Alert List */}
         <div className="p-6 pt-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">Emergency Alerts</h3>
             <span className="text-sm text-slate-400">{sortedAlerts.length} alerts</span>
           </div>
-          
+
           <div className="space-y-4">
             <AnimatePresence>
               {sortedAlerts.length > 0 ? (
@@ -708,8 +703,8 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">All Clear</h3>
                   <p className="text-slate-400 max-w-xs mx-auto">
-                    {filter === 'all' 
-                      ? 'No active alerts at this time. Great job!' 
+                    {filter === 'all'
+                      ? 'No active alerts at this time. Great job!'
                       : `No ${filter} alerts found`
                     }
                   </p>
@@ -718,7 +713,7 @@ export default function RescueTeamDashboard({ onBack }: { onBack?: () => void })
             </AnimatePresence>
           </div>
         </div>
-        
+
         {/* Pending Alert Banner */}
         <AnimatePresence>
           {pendingCount > 0 && filter !== 'pending' && (

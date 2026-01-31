@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from './store';
-import { setViewMode, setShowRoleSelector, setDarkMode } from './store/slices/uiSlice';
+import { setViewMode, setDarkMode } from './store/slices/uiSlice';
 import { logout } from './store/slices/authSlice';
 import MapMap from './components/MapMap';
 import ManagerDashboard from './components/ManagerDashboard';
 import RescueTeamDashboard from './components/RescueTeamDashboard';
-import SOSButton from './components/SOSButton';
+// SOSButton import removed - not used in current layout
 import UserDashboard from './components/UserDashboard';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -33,7 +33,8 @@ function AuthPage() {
 function Sidebar() {
   const dispatch = useDispatch();
   const { userRole, user } = useSelector((state: RootState) => state.auth);
-  const { viewMode, darkMode } = useSelector((state: RootState) => state.ui);
+  const { viewMode, darkMode: _sidebarDarkMode } = useSelector((state: RootState) => state.ui);
+  void _sidebarDarkMode; // Used for future dark mode toggle in sidebar
   const { offlineMode } = useSelector((state: RootState) => state.shelters);
 
   // Normalize role for display
