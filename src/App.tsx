@@ -13,11 +13,12 @@ import RegisterPage from './components/RegisterPage';
 import { setOfflineMode } from './store/slices/sheltersSlice';
 import { useEffect, useState } from 'react';
 import { useSocket } from './hooks/useSocket';
+import OfflineBanner from './components/OfflineBanner';
 
 // Auth Page - Manages Login/Register flow
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  
+
   return (
     <AnimatePresence mode="wait">
       {isLogin ? (
@@ -83,7 +84,7 @@ function Sidebar() {
               <p className="text-xs text-slate-500">Emergency Response</p>
             </div>
           </div>
-          
+
           {/* User Card */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/50 border border-slate-800/50">
             <div className="flex items-center gap-3 mb-3">
@@ -119,18 +120,17 @@ function Sidebar() {
                   onClick={() => dispatch(setViewMode(item.id as 'map' | 'dashboard' | 'rescue'))}
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? `bg-gradient-to-r ${roleConfig.gradient} text-white shadow-lg`
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                    ? `bg-gradient-to-r ${roleConfig.gradient} text-white shadow-lg`
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                    }`}
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                   </svg>
                   <span>{item.label}</span>
                   {isActive && (
-                    <motion.div 
+                    <motion.div
                       layoutId="activeIndicator"
                       className="ml-auto w-1.5 h-1.5 rounded-full bg-white"
                     />
@@ -176,7 +176,7 @@ function Sidebar() {
             </svg>
             <span>Sign Out</span>
           </motion.button>
-          
+
           {/* Version */}
           <p className="text-[10px] text-slate-700 text-center mt-4">
             SafeRoute v2.0 • Chennai Region
@@ -257,7 +257,7 @@ function MobileNav() {
               onClick={() => setIsMenuOpen(false)}
               className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
             />
-            
+
             {/* Menu Panel */}
             <motion.div
               initial={{ opacity: 0, x: '100%' }}
@@ -280,7 +280,7 @@ function MobileNav() {
                       </svg>
                     </button>
                   </div>
-                  
+
                   {/* User Card */}
                   <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/50">
                     <div className="flex items-center gap-3">
@@ -311,11 +311,10 @@ function MobileNav() {
                             setIsMenuOpen(false);
                           }}
                           whileTap={{ scale: 0.98 }}
-                          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium transition-all ${
-                            isActive
-                              ? `bg-gradient-to-r ${roleConfig.gradient} text-white shadow-lg`
-                              : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                          }`}
+                          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-sm font-medium transition-all ${isActive
+                            ? `bg-gradient-to-r ${roleConfig.gradient} text-white shadow-lg`
+                            : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                            }`}
                         >
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -354,7 +353,7 @@ function App() {
   const dispatch = useDispatch();
   const { isAuthenticated, userRole } = useSelector((state: RootState) => state.auth);
   const { viewMode, darkMode } = useSelector((state: RootState) => state.ui);
-  
+
   // Initialize socket connection
   useSocket();
 
@@ -399,6 +398,8 @@ function App() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
+      {/* Emergency Offline Mode Banner - Shows when network is unavailable */}
+      <OfflineBanner />
       <AnimatePresence mode="wait">
         {!isAuthenticated ? (
           <AuthPage key="auth-page" />
@@ -418,10 +419,9 @@ function App() {
 
             <MobileNav />
 
-            <main 
-              className={`flex-1 h-full overflow-hidden relative ${
-                (normalizedRole === 'manager' || normalizedRole === 'rescue') ? 'md:ml-72' : ''
-              }`}
+            <main
+              className={`flex-1 h-full overflow-hidden relative ${(normalizedRole === 'manager' || normalizedRole === 'rescue') ? 'md:ml-72' : ''
+                }`}
             >
               <AnimatePresence mode="wait">
                 {viewMode === 'map' && normalizedRole === 'user' && (
