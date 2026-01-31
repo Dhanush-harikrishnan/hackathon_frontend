@@ -16,11 +16,16 @@ Your app is deployed at: `https://hackathon-frontend-seven-theta.vercel.app`
 2. On your phone browser, open the Vercel URL
 3. Login with your account
 
-### Step 3: Test P2P SOS Transfer
-1. **Turn OFF mobile data** on your phone (keep WiFi on)
-2. On phone: You'll see "📡 P2P Mode" and orange offline banner
-3. On phone: **Tap the big red SOS button** at bottom
-4. On laptop: **See the SOS alert appear!**
+### Step 3: Test P2P SOS Transfer (Works BOTH Ways!)
+
+**Option A: Mobile → Laptop**
+1. Turn OFF mobile data on phone (keep WiFi on)
+2. On phone: Tap the **big red SOS button**
+3. On laptop: See the SOS alert appear!
+
+**Option B: Laptop → Mobile**
+1. On laptop: Tap the **big red SOS button**
+2. On phone: See the SOS alert + phone vibrates!
 
 ---
 
