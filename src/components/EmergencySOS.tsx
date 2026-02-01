@@ -1,28 +1,52 @@
 // EmergencySOS - ONE-TAP Emergency Alert
-// Simplified for disaster scenarios - NO CODE ENTRY NEEDED
-// Auto-broadcasts to ALL nearby devices instantly via Socket.io
+// Works OFFLINE via local relay OR Online via Socket.io
+// Auto-broadcasts to ALL nearby devices on hotspot!
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Radio, Check, Loader2, Users } from 'lucide-react';
+import { AlertTriangle, Radio, Check, Loader2, Users, Wifi, WifiOff } from 'lucide-react';
 import { useMeshNetwork, type P2PSOSMessage } from '../hooks/useMeshNetwork';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useSocket } from '../hooks/useSocket';
+import { useLocalRelay } from '../hooks/useLocalRelay';
 
 export default function EmergencySOS() {
     const { isOffline } = useNetworkStatus();
-    const { sendSOS, totalQueuedSOS } = useMeshNetwork();
-    const { emit, isConnected } = useSocket();
+    const { sendSOS: sendMeshSOS, totalQueuedSOS } = useMeshNetwork();
+    const { emit, isConnected: socketConnected } = useSocket();
+    const { connected: relayConnected, receivedSOS: relayReceivedSOS, sendSOS: sendRelaySOS } = useLocalRelay();
 
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [showReceived, setShowReceived] = useState(false);
     const [receivedSOS, setReceivedSOS] = useState<P2PSOSMessage | null>(null);
 
-    // Listen for P2P SOS from other devices (via Socket.io)
+    // Listen for SOS from local relay (offline P2P)
+    useEffect(() => {
+        if (relayReceivedSOS.length > 0) {
+            const latest = relayReceivedSOS[relayReceivedSOS.length - 1];
+            setReceivedSOS({
+                id: latest.id,
+                senderId: latest.senderId,
+                timestamp: latest.timestamp,
+                location: latest.location,
+                message: latest.message,
+                priority: 'high',
+                hops: 0,
+                originDevice: latest.senderId
+            });
+            setShowReceived(true);
+
+            // Vibrate
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+        }
+    }, [relayReceivedSOS]);
+
+    // Listen for P2P SOS from Socket.io (online mode)
     useEffect(() => {
         const handleP2PSOS = () => {
-            // Read from localStorage (set by useSocket)
             const stored = localStorage.getItem('mesh_received_sos');
             if (stored) {
                 const messages: P2PSOSMessage[] = JSON.parse(stored);
@@ -33,10 +57,7 @@ export default function EmergencySOS() {
             }
         };
 
-        // Listen for custom event from useSocket
         window.addEventListener('p2p_sos_received', handleP2PSOS);
-
-        // Also check on mount
         handleP2PSOS();
 
         return () => {
@@ -44,18 +65,18 @@ export default function EmergencySOS() {
         };
     }, []);
 
-    // ONE-TAP SOS - Gets location and broadcasts immediately
+    // ONE-TAP SOS - Works online AND offline!
     const handleEmergencySOS = useCallback(async () => {
         setSending(true);
 
         let location: { lat: number; lng: number } | undefined;
 
-        // Get location (with timeout for speed)
+        // Get location (fast timeout)
         try {
             const position = await new Promise<GeolocationPosition>((resolve, reject) => {
                 navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: false, // Faster
-                    timeout: 3000, // 3 second max
+                    enableHighAccuracy: false,
+                    timeout: 3000,
                     maximumAge: 60000
                 });
             });
@@ -78,21 +99,28 @@ export default function EmergencySOS() {
             originDevice: localStorage.getItem('mesh_device_id') || 'unknown'
         };
 
-        // Send via Socket.io (works across devices on hosted app!)
-        if (isConnected && !isOffline) {
-            emit('p2p_sos_broadcast', sosMessage);
-            console.log('📡 SOS sent via Socket.io to all devices');
+        // Method 1: Local relay (works on hotspot without internet!)
+        if (relayConnected) {
+            sendRelaySOS('EMERGENCY! Need immediate help!');
+            console.log('📡 SOS sent via LOCAL RELAY (offline P2P)');
         }
 
-        // Also send via local mesh (for offline/same-device)
-        sendSOS(location, 'EMERGENCY! Need immediate help!');
+        // Method 2: Socket.io (works when online)
+        if (socketConnected && !isOffline) {
+            emit('p2p_sos_broadcast', sosMessage);
+            console.log('📡 SOS sent via Socket.io');
+        }
+
+        // Method 3: Mesh network (same-browser tabs)
+        sendMeshSOS(location, 'EMERGENCY! Need immediate help!');
 
         setSending(false);
         setSent(true);
-
-        // Reset after 5 seconds
         setTimeout(() => setSent(false), 5000);
-    }, [emit, isConnected, isOffline, sendSOS]);
+    }, [emit, socketConnected, isOffline, sendMeshSOS, relayConnected, sendRelaySOS]);
+
+    // Connection status
+    const isAnyConnected = relayConnected || (socketConnected && !isOffline);
 
     return (
         <>
@@ -103,12 +131,12 @@ export default function EmergencySOS() {
                     disabled={sending}
                     whileTap={{ scale: 0.9 }}
                     className={`relative w-24 h-24 rounded-full shadow-2xl flex items-center justify-center transition-all ${sent
-                        ? 'bg-gradient-to-br from-emerald-500 to-green-600'
-                        : 'bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
+                            ? 'bg-gradient-to-br from-emerald-500 to-green-600'
+                            : 'bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
                         }`}
                 >
-                    {/* Pulsing ring when offline (P2P active) */}
-                    {isOffline && !sent && (
+                    {/* Pulsing ring when connected */}
+                    {isAnyConnected && !sent && (
                         <>
                             <motion.div
                                 className="absolute inset-0 rounded-full border-4 border-red-400"
@@ -146,15 +174,20 @@ export default function EmergencySOS() {
                         >
                             ✓ SOS Broadcast sent!
                         </motion.span>
-                    ) : isOffline ? (
-                        <span className="text-amber-400 text-xs font-medium flex items-center justify-center gap-1">
-                            <Radio className="w-3 h-3 animate-pulse" />
-                            Offline P2P Mode
+                    ) : relayConnected ? (
+                        <span className="text-emerald-400 text-xs font-medium flex items-center justify-center gap-1">
+                            <Wifi className="w-3 h-3" />
+                            Local P2P • Ready
                         </span>
-                    ) : isConnected ? (
+                    ) : socketConnected && !isOffline ? (
                         <span className="text-emerald-400 text-xs font-medium flex items-center justify-center gap-1">
                             <Radio className="w-3 h-3" />
-                            Connected • Ready
+                            Online • Ready
+                        </span>
+                    ) : isOffline ? (
+                        <span className="text-amber-400 text-xs font-medium flex items-center justify-center gap-1">
+                            <WifiOff className="w-3 h-3" />
+                            Offline Mode
                         </span>
                     ) : (
                         <span className="text-slate-400 text-xs">Tap for emergency</span>
