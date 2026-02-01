@@ -66,8 +66,8 @@ export default function EmergencySOS() {
                     disabled={sending}
                     whileTap={{ scale: 0.9 }}
                     className={`relative w-24 h-24 rounded-full shadow-2xl flex items-center justify-center transition-all ${sent
-                            ? 'bg-gradient-to-br from-emerald-500 to-green-600'
-                            : 'bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
+                        ? 'bg-gradient-to-br from-emerald-500 to-green-600'
+                        : 'bg-gradient-to-br from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
                         }`}
                 >
                     {/* Pulsing ring when offline (P2P active) */}
@@ -139,14 +139,14 @@ export default function EmergencySOS() {
                             </motion.div>
                             <div className="flex-1">
                                 <div className="text-white font-bold text-sm">
-                                    🚨 SOS RECEIVED via P2P!
+                                    🚨 SOS RECEIVED!
                                 </div>
                                 <div className="text-white/90 text-xs mt-1">
                                     {receivedMessages[receivedMessages.length - 1]?.message}
                                 </div>
                                 <div className="flex items-center gap-2 mt-2 text-white/70 text-xs">
                                     <Users className="w-3 h-3" />
-                                    <span>Relayed through {receivedMessages[receivedMessages.length - 1]?.hops || 0} device(s)</span>
+                                    <span>Received via P2P network</span>
                                 </div>
                             </div>
                             <button
