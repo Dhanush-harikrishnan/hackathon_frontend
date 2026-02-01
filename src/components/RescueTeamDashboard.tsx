@@ -338,6 +338,63 @@ export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () =
       playAlertSound();
     });
 
+    // Listen for P2P SOS via BroadcastChannel (same-browser tabs)
+    const p2pChannel = new BroadcastChannel('saferoute_mesh_channel');
+    p2pChannel.onmessage = (event) => {
+      if (event.data?.type === 'SOS_MESSAGE') {
+        const sosData = event.data.payload;
+        // Convert P2P SOS to alert format
+        const p2pAlert = {
+          _id: sosData.id || `p2p-${Date.now()}`,
+          userId: 'p2p-user',
+          location: sosData.location || { coordinates: [0, 0] },
+          lat: sosData.location?.lat || 0,
+          lng: sosData.location?.lng || 0,
+          status: 'pending' as const,
+          timestamp: new Date(sosData.timestamp || Date.now()).toISOString(),
+          message: sosData.message || 'P2P Emergency SOS!',
+          priority: 'high'
+        };
+        dispatch(realtimeAlertUpdate(p2pAlert));
+        setLastUpdate(new Date());
+        addNotification('🚨 P2P SOS Alert received!', 'alert');
+        playAlertSound();
+      }
+    };
+
+    // Also listen for localStorage-based P2P (cross-device on same network)
+    const handleP2PStorage = () => {
+      const stored = localStorage.getItem('mesh_received_sos');
+      if (stored) {
+        const messages = JSON.parse(stored);
+        if (messages.length > 0) {
+          const latest = messages[messages.length - 1];
+          // Only process if new (within last 10 seconds)
+          if (Date.now() - latest.timestamp < 10000) {
+            const p2pAlert = {
+              _id: latest.id || `p2p-${Date.now()}`,
+              userId: 'p2p-user',
+              location: latest.location || { coordinates: [0, 0] },
+              lat: latest.location?.lat || 0,
+              lng: latest.location?.lng || 0,
+              status: 'pending' as const,
+              timestamp: new Date(latest.timestamp || Date.now()).toISOString(),
+              message: latest.message || 'P2P Emergency SOS!',
+              priority: 'high'
+            };
+            dispatch(realtimeAlertUpdate(p2pAlert));
+            addNotification('🚨 P2P SOS Alert received!', 'alert');
+            playAlertSound();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('p2p_sos_received', handleP2PStorage);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'mesh_received_sos') handleP2PStorage();
+    });
+
     newSocket.on('sos_resolved', (data: { sosId: string }) => {
       const alert = alerts.find(a => a._id === data.sosId);
       if (alert) {
