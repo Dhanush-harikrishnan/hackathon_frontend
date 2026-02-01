@@ -28,16 +28,46 @@ export const useSocket = () => {
     // Connection events
     socket.on('connect', () => {
       console.log('🔌 Socket connected:', socket.id);
-      
+
       // Auto-join rooms based on user role
       if (user?.role === 'rescue_team' || user?.role === 'rescue') {
         socket.emit('join_room', 'rescue_team_room');
         console.log('📢 Joined rescue_team_room');
       }
-      
+
       if (user?.role === 'manager') {
         socket.emit('join_room', 'manager_room');
         console.log('📢 Joined manager_room');
+      }
+
+      // ALL users join p2p_room for cross-device SOS transfer
+      socket.emit('join_room', 'p2p_room');
+      console.log('📢 Joined p2p_room for P2P SOS');
+    });
+
+    // P2P SOS broadcast from other devices
+    socket.on('p2p_sos', (sosData) => {
+      console.log('🚨 P2P SOS received from another device:', sosData);
+
+      // Store in localStorage for the EmergencySOS component to pick up
+      const existing = localStorage.getItem('mesh_received_sos');
+      const messages = existing ? JSON.parse(existing) : [];
+
+      // Avoid duplicates
+      if (!messages.some((m: { id: string }) => m.id === sosData.id)) {
+        messages.push(sosData);
+        localStorage.setItem('mesh_received_sos', JSON.stringify(messages));
+
+        // Trigger a storage event for the app to react
+        window.dispatchEvent(new Event('p2p_sos_received'));
+
+        // Vibrate if supported
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+
+        // Play notification sound
+        playNotificationSound();
       }
     });
 
@@ -62,7 +92,7 @@ export const useSocket = () => {
     // SOS alert events (from backend - only rescue team receives these)
     socket.on('new_emergency', (alert) => {
       console.log('🚨 New emergency alert received:', alert);
-      
+
       // Transform the alert to match our frontend structure
       const transformedAlert = {
         _id: alert._id,
@@ -74,12 +104,12 @@ export const useSocket = () => {
         status: alert.status?.toLowerCase() || 'pending',
         notes: alert.details || '',
       };
-      
+
       dispatch(realtimeAlert(transformedAlert));
-      
+
       // Play notification sound
       playNotificationSound();
-      
+
       // Show browser notification if permitted
       showBrowserNotification('🚨 New SOS Alert', {
         body: `Emergency from ${transformedAlert.userName}`,
@@ -89,7 +119,7 @@ export const useSocket = () => {
 
     socket.on('sos_resolved', (alert) => {
       console.log('✅ SOS resolved:', alert._id);
-      
+
       const transformedAlert: { _id: string; userId: string; userName: string; lat: number; lng: number; timestamp: string; status: 'pending' | 'acknowledged' | 'resolved'; notes: string } = {
         _id: alert._id,
         userId: alert.userId?._id || alert.userId,
@@ -100,7 +130,7 @@ export const useSocket = () => {
         status: 'resolved' as const,
         notes: alert.details || '',
       };
-      
+
       dispatch(realtimeAlertUpdate(transformedAlert));
     });
 
@@ -161,16 +191,16 @@ function playNotificationSound() {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     oscillator.frequency.value = 800;
     oscillator.type = 'sine';
-    
+
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.5);
   } catch (error) {

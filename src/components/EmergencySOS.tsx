@@ -1,35 +1,54 @@
 // EmergencySOS - ONE-TAP Emergency Alert
 // Simplified for disaster scenarios - NO CODE ENTRY NEEDED
-// Auto-broadcasts to ALL nearby devices instantly
+// Auto-broadcasts to ALL nearby devices instantly via Socket.io
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Radio, Check, Loader2, Users } from 'lucide-react';
-import { useMeshNetwork } from '../hooks/useMeshNetwork';
+import { useMeshNetwork, type P2PSOSMessage } from '../hooks/useMeshNetwork';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { useSocket } from '../hooks/useSocket';
 
 export default function EmergencySOS() {
     const { isOffline } = useNetworkStatus();
-    const { sendSOS, peerCount, totalQueuedSOS, receivedMessages } = useMeshNetwork();
+    const { sendSOS, totalQueuedSOS } = useMeshNetwork();
+    const { emit, isConnected } = useSocket();
 
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [showReceived, setShowReceived] = useState(false);
+    const [receivedSOS, setReceivedSOS] = useState<P2PSOSMessage | null>(null);
 
-    // Show notification when SOS received from others
+    // Listen for P2P SOS from other devices (via Socket.io)
     useEffect(() => {
-        if (receivedMessages.length > 0) {
-            setShowReceived(true);
-            // Vibrate device if supported (mobile)
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
+        const handleP2PSOS = () => {
+            // Read from localStorage (set by useSocket)
+            const stored = localStorage.getItem('mesh_received_sos');
+            if (stored) {
+                const messages: P2PSOSMessage[] = JSON.parse(stored);
+                if (messages.length > 0) {
+                    setReceivedSOS(messages[messages.length - 1]);
+                    setShowReceived(true);
+                }
             }
-        }
-    }, [receivedMessages.length]);
+        };
+
+        // Listen for custom event from useSocket
+        window.addEventListener('p2p_sos_received', handleP2PSOS);
+
+        // Also check on mount
+        handleP2PSOS();
+
+        return () => {
+            window.removeEventListener('p2p_sos_received', handleP2PSOS);
+        };
+    }, []);
 
     // ONE-TAP SOS - Gets location and broadcasts immediately
-    const handleEmergencySOS = async () => {
+    const handleEmergencySOS = useCallback(async () => {
         setSending(true);
+
+        let location: { lat: number; lng: number } | undefined;
 
         // Get location (with timeout for speed)
         try {
@@ -40,22 +59,40 @@ export default function EmergencySOS() {
                     maximumAge: 60000
                 });
             });
-
-            sendSOS({
+            location = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
-            }, 'EMERGENCY! Need immediate help!');
+            };
         } catch {
-            // Send without location if geolocation fails
-            sendSOS(undefined, 'EMERGENCY! Need immediate help!');
+            // Continue without location
         }
+
+        const sosMessage = {
+            id: `sos-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+            senderId: localStorage.getItem('mesh_device_id') || 'unknown',
+            timestamp: Date.now(),
+            location,
+            message: 'EMERGENCY! Need immediate help!',
+            priority: 'high' as const,
+            hops: 0,
+            originDevice: localStorage.getItem('mesh_device_id') || 'unknown'
+        };
+
+        // Send via Socket.io (works across devices on hosted app!)
+        if (isConnected && !isOffline) {
+            emit('p2p_sos_broadcast', sosMessage);
+            console.log('📡 SOS sent via Socket.io to all devices');
+        }
+
+        // Also send via local mesh (for offline/same-device)
+        sendSOS(location, 'EMERGENCY! Need immediate help!');
 
         setSending(false);
         setSent(true);
 
         // Reset after 5 seconds
         setTimeout(() => setSent(false), 5000);
-    };
+    }, [emit, isConnected, isOffline, sendSOS]);
 
     return (
         <>
@@ -107,12 +144,17 @@ export default function EmergencySOS() {
                             animate={{ opacity: 1, y: 0 }}
                             className="text-emerald-400 text-xs font-bold"
                         >
-                            ✓ SOS Sent to {peerCount} device{peerCount !== 1 ? 's' : ''}!
+                            ✓ SOS Broadcast sent!
                         </motion.span>
                     ) : isOffline ? (
                         <span className="text-amber-400 text-xs font-medium flex items-center justify-center gap-1">
                             <Radio className="w-3 h-3 animate-pulse" />
-                            P2P Mode • {peerCount} nearby
+                            Offline P2P Mode
+                        </span>
+                    ) : isConnected ? (
+                        <span className="text-emerald-400 text-xs font-medium flex items-center justify-center gap-1">
+                            <Radio className="w-3 h-3" />
+                            Connected • Ready
                         </span>
                     ) : (
                         <span className="text-slate-400 text-xs">Tap for emergency</span>
@@ -122,7 +164,7 @@ export default function EmergencySOS() {
 
             {/* Received SOS Alert */}
             <AnimatePresence>
-                {showReceived && receivedMessages.length > 0 && (
+                {showReceived && receivedSOS && (
                     <motion.div
                         initial={{ y: -100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -142,7 +184,7 @@ export default function EmergencySOS() {
                                     🚨 SOS RECEIVED!
                                 </div>
                                 <div className="text-white/90 text-xs mt-1">
-                                    {receivedMessages[receivedMessages.length - 1]?.message}
+                                    {receivedSOS.message}
                                 </div>
                                 <div className="flex items-center gap-2 mt-2 text-white/70 text-xs">
                                     <Users className="w-3 h-3" />
