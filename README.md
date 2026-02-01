@@ -2,30 +2,41 @@
 
 ## 🌊 Offline Emergency SOS with P2P Transfer
 
-A disaster-resilient web app that works **without internet** using peer-to-peer communication.
+Works **without internet** using peer-to-peer communication - perfect for disasters!
 
 ---
 
-## 📱 How to Connect Mobile for Demo
+## � REAL DISASTER SCENARIO (No WiFi Router!)
 
-### Step 1: Get Your Vercel URL
-Your app is deployed at: `https://hackathon-frontend-seven-theta.vercel.app`
+In a flood, there's no WiFi. Use **Mobile Hotspot** instead:
 
-### Step 2: Open on Mobile
-1. Connect your **laptop AND phone to the SAME WiFi**
-2. On your phone browser, open the Vercel URL
-3. Login with your account
+### How It Works:
+```
+📱 Phone A (Creates Hotspot) ←→ 📱 Phone B (Joins Hotspot) ←→ 💻 Laptop (Joins Hotspot)
+         ↓                              ↓                           ↓
+    [SafeRoute App]              [SafeRoute App]             [SafeRoute App]
+         ↓                              ↓                           ↓
+    [Tap SOS] ----→ P2P Transfer ----→ [Receives SOS Alert!]
+```
 
-### Step 3: Test P2P SOS Transfer (Works BOTH Ways!)
+### Step-by-Step:
+1. **One person** turns ON their phone's **Mobile Hotspot** (no internet needed!)
+2. **Other devices** connect to that hotspot
+3. Everyone opens SafeRoute app
+4. **Tap SOS → All connected devices get the alert!**
 
-**Option A: Mobile → Laptop**
-1. Turn OFF mobile data on phone (keep WiFi on)
-2. On phone: Tap the **big red SOS button**
-3. On laptop: See the SOS alert appear!
+> 💡 Mobile Hotspot creates a local network - no internet required!
 
-**Option B: Laptop → Mobile**
-1. On laptop: Tap the **big red SOS button**
-2. On phone: See the SOS alert + phone vibrates!
+---
+
+## 📱 Demo Setup (For Hackathon)
+
+### Quick Demo:
+1. Phone A: Turn on **Mobile Hotspot** (Settings → Hotspot)
+2. Phone B / Laptop: Connect to Phone A's hotspot
+3. Open `https://hackathon-frontend-seven-theta.vercel.app` on both
+4. Login on both devices
+5. **Tap SOS on one device → See alert on the other!**
 
 ---
 
@@ -34,46 +45,19 @@ Your app is deployed at: `https://hackathon-frontend-seven-theta.vercel.app`
 | Feature | Description |
 |---------|-------------|
 | **ONE-TAP SOS** | Big red button - no complex steps |
-| **P2P Transfer** | SOS goes directly to nearby devices |
-| **Offline Mode** | Works without internet (PWA) |
-| **Auto Location** | Grabs GPS in 3 seconds |
+| **P2P Transfer** | Works via hotspot, no internet needed |
+| **Offline Mode** | PWA - works without connectivity |
+| **Auto Location** | GPS works without internet |
 | **Phone Vibrate** | Alerts when SOS received |
-
----
-
-## 🛠 Local Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run dev server
-npm run dev
-
-# Build for production
-npm run build
-```
-
----
-
-## 📡 How P2P Works
-
-```
-Phone (Offline) ---> WiFi ---> Laptop (Online) ---> Backend Server
-      |                              |
-      |--- BroadcastChannel ---------|
-```
-
-All devices on the same network automatically discover each other!
 
 ---
 
 ## 🎯 Hackathon Demo Script
 
-1. Show app working online (shelters load)
-2. Turn off internet → Offline banner appears
-3. Show shelters still display (cached)
-4. Tap SOS → Broadcasts to other device
-5. Turn internet back on → Data syncs
+1. "In a flood, cell towers are down. No internet."
+2. "But we can create our own network with hotspot!"
+3. Turn on hotspot → Connect devices
+4. Tap SOS → Other device receives it instantly
+5. "This is how disaster victims can communicate!"
 
-**Perfect for disaster scenarios where cell towers are down!**
+**🏆 This solves real-world disaster communication problems!**
