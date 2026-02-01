@@ -1,56 +1,58 @@
 # SafeRoute - Disaster Response Platform
 
-## 🌊 Offline Emergency SOS with P2P Transfer
+## 🚨 TRUE OFFLINE P2P (No Internet Required!)
 
-Works **without internet** using peer-to-peer communication!
+Send SOS alerts to nearby devices **without any internet connection** - just a mobile hotspot!
 
 ---
 
-## 🚨 CROSS-DEVICE P2P DEMO (Hotspot Method)
+## 📱 HOW IT WORKS
 
-For true cross-device SOS transfer, run the app **locally on your laptop**:
-
-### Step 1: Find Your Laptop's IP Address
-```bash
-# On Windows:
-ipconfig
-# Look for "IPv4 Address" like: 192.168.x.x
+```
+📱 Phone A (Hotspot)         📱 Phone B         💻 Laptop
+      |                           |                  |
+      +------ HOTSPOT WIFI -------+------------------+
+                                  |
+                         Local Relay Server
+                         (runs on laptop)
+                                  |
+                    SOS broadcasts to ALL devices!
 ```
 
-### Step 2: Run the App Locally
+---
+
+## 🎯 QUICK START (Hackathon Demo)
+
+### Step 1: Start the Local Relay Server
 ```bash
 cd "Kimi_Agent_Professional UI Enhancement/app"
-npm run dev -- --host
+node local-relay.js
 ```
-This starts the server on your laptop's IP (e.g., `http://192.168.1.5:5173`)
 
-### Step 3: Create Hotspot & Connect
+### Step 2: Get Your Laptop's IP
+```bash
+ipconfig
+# Look for: IPv4 Address ... 192.168.x.x
+```
+
+### Step 3: Setup Hotspot
 1. **Phone A**: Turn ON Mobile Hotspot
-2. **Laptop**: Connect to Phone A's hotspot
-3. **Phone B**: Also connect to same hotspot
+2. **Laptop + Phone B**: Connect to that hotspot
 
 ### Step 4: Open the App
-- **On Laptop**: Open `http://localhost:5173`
-- **On Phones**: Open `http://192.168.x.x:5173` (your laptop's IP)
+- **Laptop**: Open `http://localhost:5173` (run `npm run dev`)
+- **Phone B**: Open `http://<laptop-ip>:5173`
 
-### Step 5: Test SOS!
-1. Login on all devices
-2. Tap SOS on any device
-3. **All other devices receive the alert!**
-
----
-
-## 📱 Why This Works
-
-```
-📱 Phone A (Hotspot) ←→ 💻 Laptop (Running Server) ←→ 📱 Phone B
-                              ↓
-                    [Same App Server = Shared State]
-                              ↓
-                    [SOS broadcasts to ALL devices!]
+### Step 5: Configure Relay URL (on Phone)
+In browser console or app settings, set:
+```javascript
+localStorage.setItem('local_relay_url', 'ws://192.168.x.x:8765')
 ```
 
-The laptop acts as a local server - no internet required!
+### Step 6: Test!
+1. Tap SOS on one device
+2. **Other device receives the alert!**
+3. **No internet required! 🎉**
 
 ---
 
@@ -58,21 +60,38 @@ The laptop acts as a local server - no internet required!
 
 | Feature | Description |
 |---------|-------------|
-| **ONE-TAP SOS** | Big red button at bottom |
-| **Cross-Device P2P** | Works via local server |
-| **Offline Ready** | No internet needed |
-| **Auto Location** | GPS works offline |
+| **ONE-TAP SOS** | Big red button |
+| **True Offline P2P** | Works on hotspot only |
+| **Location Sharing** | GPS works without internet |
+| **Auto-Reconnect** | Reconnects if connection drops |
 
 ---
 
-## 🎯 Hackathon Demo Script
+## 🛠 Development
 
-1. "Cell towers are down in a flood. No internet."
-2. "One person creates a hotspot with their phone."
-3. "I run SafeRoute on my laptop, everyone connects."
-4. Show laptop IP: `npm run dev -- --host`
-5. Open app on mobile via laptop's IP
-6. Tap SOS → Other devices receive it!
-7. "Victims can coordinate rescue without any internet!"
+```bash
+# Install dependencies
+npm install
 
-**🏆 Real disaster solution - no infrastructure needed!**
+# Run dev server (exposes on network)
+npm run dev -- --host
+
+# Run local relay (for offline P2P)
+node local-relay.js
+
+# Build for production
+npm run build
+```
+
+---
+
+## 🎤 Demo Script
+
+1. "In a disaster, cell towers are down. No internet."
+2. "But I can create a hotspot with my phone!"
+3. Start local relay: `node local-relay.js`
+4. Show both devices connected
+5. Tap SOS → "Look, other device got the alert!"
+6. "This is how disaster victims coordinate rescue!"
+
+🏆 **Real disaster solution - no infrastructure needed!**
