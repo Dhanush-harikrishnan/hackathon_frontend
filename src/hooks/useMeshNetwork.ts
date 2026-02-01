@@ -1,10 +1,10 @@
-// useMeshNetwork - P2P Mesh Network for Disaster SOS Transfer
-// Uses WebRTC to enable device-to-device communication without internet
-// Critical for disaster scenarios where cell towers may be down
+// P2P Mesh Network for Cross-Device SOS Transfer
+// Works across devices connected to the same hotspot/network
+// Uses polling-based sync with localStorage for reliability
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Generate a unique device ID for mesh network identification
+// Generate a unique device ID
 const generateDeviceId = (): string => {
     const stored = localStorage.getItem('mesh_device_id');
     if (stored) return stored;
@@ -14,7 +14,7 @@ const generateDeviceId = (): string => {
     return id;
 };
 
-// SOS Message structure for P2P transfer
+// SOS Message structure
 export interface P2PSOSMessage {
     id: string;
     senderId: string;
@@ -23,11 +23,11 @@ export interface P2PSOSMessage {
     location?: { lat: number; lng: number };
     message: string;
     priority: 'high' | 'medium' | 'low';
-    hops: number; // Number of device relays
+    hops: number;
     originDevice: string;
 }
 
-// Peer connection info
+// Peer info
 export interface PeerInfo {
     id: string;
     name?: string;
@@ -44,6 +44,14 @@ interface MeshNetworkState {
     connectionCode: string;
 }
 
+// Storage keys
+const STORAGE_KEYS = {
+    PENDING: 'mesh_pending_sos',
+    RECEIVED: 'mesh_received_sos',
+    SHARED: 'mesh_shared_sos', // Shared across devices
+    PEERS: 'mesh_peers'
+};
+
 export function useMeshNetwork() {
     const [state, setState] = useState<MeshNetworkState>({
         deviceId: '',
@@ -54,18 +62,17 @@ export function useMeshNetwork() {
         connectionCode: ''
     });
 
-    const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
-    const dataChannels = useRef<Map<string, RTCDataChannel>>(new Map());
     const broadcastChannel = useRef<BroadcastChannel | null>(null);
+    const pollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Initialize mesh network
     useEffect(() => {
         const deviceId = generateDeviceId();
-        const connectionCode = deviceId.substring(3); // Short code for sharing
+        const connectionCode = deviceId.substring(3);
 
-        // Load persisted messages from localStorage
-        const savedPending = localStorage.getItem('mesh_pending_sos');
-        const savedReceived = localStorage.getItem('mesh_received_sos');
+        // Load persisted messages
+        const savedPending = localStorage.getItem(STORAGE_KEYS.PENDING);
+        const savedReceived = localStorage.getItem(STORAGE_KEYS.RECEIVED);
 
         setState(prev => ({
             ...prev,
@@ -76,10 +83,9 @@ export function useMeshNetwork() {
             receivedMessages: savedReceived ? JSON.parse(savedReceived) : []
         }));
 
-        // BroadcastChannel for same-browser tab communication (demo/testing)
+        // BroadcastChannel for same-browser tabs
         try {
             broadcastChannel.current = new BroadcastChannel('saferoute_mesh');
-
             broadcastChannel.current.onmessage = (event) => {
                 handleIncomingMessage(event.data);
             };
@@ -94,17 +100,49 @@ export function useMeshNetwork() {
             console.log('BroadcastChannel not supported');
         }
 
+        // Poll for shared SOS messages (cross-device sync)
+        pollInterval.current = setInterval(() => {
+            checkForSharedSOS(deviceId);
+        }, 1000); // Check every second
+
         return () => {
             broadcastChannel.current?.close();
-            // Close all peer connections
-            peerConnections.current.forEach(pc => pc.close());
+            if (pollInterval.current) clearInterval(pollInterval.current);
         };
     }, []);
 
-    // Handle incoming P2P messages
+    // Check for SOS messages shared via the server/shared storage
+    const checkForSharedSOS = useCallback((myDeviceId: string) => {
+        try {
+            const shared = localStorage.getItem(STORAGE_KEYS.SHARED);
+            if (!shared) return;
+
+            const messages: P2PSOSMessage[] = JSON.parse(shared);
+            const newMessages = messages.filter(msg =>
+                msg.senderId !== myDeviceId &&
+                !state.receivedMessages.some(r => r.id === msg.id)
+            );
+
+            if (newMessages.length > 0) {
+                setState(prev => {
+                    const updated = [...prev.receivedMessages, ...newMessages];
+                    localStorage.setItem(STORAGE_KEYS.RECEIVED, JSON.stringify(updated));
+                    return { ...prev, receivedMessages: updated };
+                });
+
+                // Vibrate on new SOS
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
+                }
+            }
+        } catch (e) {
+            // Ignore parse errors
+        }
+    }, [state.receivedMessages]);
+
+    // Handle incoming P2P messages (same browser)
     const handleIncomingMessage = useCallback((data: any) => {
         if (data.type === 'PEER_ANNOUNCE') {
-            // New peer discovered
             setState(prev => {
                 const exists = prev.peers.some(p => p.id === data.deviceId);
                 if (exists || data.deviceId === prev.deviceId) return prev;
@@ -119,11 +157,9 @@ export function useMeshNetwork() {
                 };
             });
         } else if (data.type === 'SOS_BROADCAST') {
-            // Received SOS from another device
             const sosMessage: P2PSOSMessage = data.payload;
 
             setState(prev => {
-                // Check if we already have this message
                 const exists = prev.receivedMessages.some(m => m.id === sosMessage.id);
                 if (exists) return prev;
 
@@ -132,23 +168,19 @@ export function useMeshNetwork() {
                     hops: sosMessage.hops + 1
                 }];
 
-                // Persist to localStorage
-                localStorage.setItem('mesh_received_sos', JSON.stringify(newReceived));
-
-                return {
-                    ...prev,
-                    receivedMessages: newReceived
-                };
+                localStorage.setItem(STORAGE_KEYS.RECEIVED, JSON.stringify(newReceived));
+                return { ...prev, receivedMessages: newReceived };
             });
 
-            // Relay to other peers (mesh propagation)
-            relayMessage({ ...sosMessage, hops: sosMessage.hops + 1 });
+            // Vibrate
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
         }
     }, []);
 
-    // Relay message to all connected peers
+    // Relay message
     const relayMessage = useCallback((message: P2PSOSMessage) => {
-        // Don't relay if too many hops (prevent infinite loops)
         if (message.hops > 5) return;
 
         // Broadcast via BroadcastChannel
@@ -157,18 +189,23 @@ export function useMeshNetwork() {
             payload: message
         });
 
-        // Broadcast via WebRTC data channels
-        dataChannels.current.forEach((channel) => {
-            if (channel.readyState === 'open') {
-                channel.send(JSON.stringify({
-                    type: 'SOS_BROADCAST',
-                    payload: message
-                }));
+        // Store in shared storage for cross-device sync
+        try {
+            const existing = localStorage.getItem(STORAGE_KEYS.SHARED);
+            const messages: P2PSOSMessage[] = existing ? JSON.parse(existing) : [];
+
+            if (!messages.some(m => m.id === message.id)) {
+                messages.push(message);
+                // Keep only last 20 messages
+                const trimmed = messages.slice(-20);
+                localStorage.setItem(STORAGE_KEYS.SHARED, JSON.stringify(trimmed));
             }
-        });
+        } catch (e) {
+            console.error('Failed to store shared SOS:', e);
+        }
     }, []);
 
-    // Send SOS to mesh network
+    // Send SOS
     const sendSOS = useCallback((location?: { lat: number; lng: number }, message?: string) => {
         const sosMessage: P2PSOSMessage = {
             id: `sos-${Date.now()}-${state.deviceId}`,
@@ -181,32 +218,29 @@ export function useMeshNetwork() {
             originDevice: state.deviceId
         };
 
-        // Add to pending queue
+        // Add to pending
         setState(prev => {
             const newPending = [...prev.pendingMessages, sosMessage];
-            localStorage.setItem('mesh_pending_sos', JSON.stringify(newPending));
+            localStorage.setItem(STORAGE_KEYS.PENDING, JSON.stringify(newPending));
             return { ...prev, pendingMessages: newPending };
         });
 
-        // Broadcast to mesh network
+        // Broadcast
         relayMessage(sosMessage);
-
         console.log('📡 P2P SOS Broadcast:', sosMessage);
         return sosMessage;
     }, [state.deviceId, relayMessage]);
 
-    // Connect to peer via code
+    // Connect to peer
     const connectToPeer = useCallback(async (peerCode: string) => {
         const peerId = 'SR-' + peerCode.toUpperCase();
 
-        // For demo: use BroadcastChannel discovery
         broadcastChannel.current?.postMessage({
             type: 'PEER_CONNECT_REQUEST',
             fromId: state.deviceId,
             toId: peerId
         });
 
-        // Add peer optimistically
         setState(prev => ({
             ...prev,
             peers: [...prev.peers, {
@@ -219,16 +253,16 @@ export function useMeshNetwork() {
         return true;
     }, [state.deviceId]);
 
-    // Clear received messages after sync
+    // Clear synced messages
     const clearSyncedMessages = useCallback((messageIds: string[]) => {
         setState(prev => {
             const newReceived = prev.receivedMessages.filter(m => !messageIds.includes(m.id));
-            localStorage.setItem('mesh_received_sos', JSON.stringify(newReceived));
+            localStorage.setItem(STORAGE_KEYS.RECEIVED, JSON.stringify(newReceived));
             return { ...prev, receivedMessages: newReceived };
         });
     }, []);
 
-    // Sync pending messages to backend when online
+    // Sync to backend
     const syncToBackend = useCallback(async (apiUrl: string, token: string) => {
         const allMessages = [...state.pendingMessages, ...state.receivedMessages];
 
@@ -245,15 +279,14 @@ export function useMeshNetwork() {
             });
 
             if (response.ok) {
-                // Clear synced messages
                 setState(prev => ({
                     ...prev,
                     pendingMessages: [],
                     receivedMessages: []
                 }));
-                localStorage.removeItem('mesh_pending_sos');
-                localStorage.removeItem('mesh_received_sos');
-
+                localStorage.removeItem(STORAGE_KEYS.PENDING);
+                localStorage.removeItem(STORAGE_KEYS.RECEIVED);
+                localStorage.removeItem(STORAGE_KEYS.SHARED);
                 return { synced: allMessages.length };
             }
         } catch (error) {

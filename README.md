@@ -2,41 +2,55 @@
 
 ## 🌊 Offline Emergency SOS with P2P Transfer
 
-Works **without internet** using peer-to-peer communication - perfect for disasters!
+Works **without internet** using peer-to-peer communication!
 
 ---
 
-## � REAL DISASTER SCENARIO (No WiFi Router!)
+## 🚨 CROSS-DEVICE P2P DEMO (Hotspot Method)
 
-In a flood, there's no WiFi. Use **Mobile Hotspot** instead:
+For true cross-device SOS transfer, run the app **locally on your laptop**:
 
-### How It Works:
-```
-📱 Phone A (Creates Hotspot) ←→ 📱 Phone B (Joins Hotspot) ←→ 💻 Laptop (Joins Hotspot)
-         ↓                              ↓                           ↓
-    [SafeRoute App]              [SafeRoute App]             [SafeRoute App]
-         ↓                              ↓                           ↓
-    [Tap SOS] ----→ P2P Transfer ----→ [Receives SOS Alert!]
+### Step 1: Find Your Laptop's IP Address
+```bash
+# On Windows:
+ipconfig
+# Look for "IPv4 Address" like: 192.168.x.x
 ```
 
-### Step-by-Step:
-1. **One person** turns ON their phone's **Mobile Hotspot** (no internet needed!)
-2. **Other devices** connect to that hotspot
-3. Everyone opens SafeRoute app
-4. **Tap SOS → All connected devices get the alert!**
+### Step 2: Run the App Locally
+```bash
+cd "Kimi_Agent_Professional UI Enhancement/app"
+npm run dev -- --host
+```
+This starts the server on your laptop's IP (e.g., `http://192.168.1.5:5173`)
 
-> 💡 Mobile Hotspot creates a local network - no internet required!
+### Step 3: Create Hotspot & Connect
+1. **Phone A**: Turn ON Mobile Hotspot
+2. **Laptop**: Connect to Phone A's hotspot
+3. **Phone B**: Also connect to same hotspot
+
+### Step 4: Open the App
+- **On Laptop**: Open `http://localhost:5173`
+- **On Phones**: Open `http://192.168.x.x:5173` (your laptop's IP)
+
+### Step 5: Test SOS!
+1. Login on all devices
+2. Tap SOS on any device
+3. **All other devices receive the alert!**
 
 ---
 
-## 📱 Demo Setup (For Hackathon)
+## 📱 Why This Works
 
-### Quick Demo:
-1. Phone A: Turn on **Mobile Hotspot** (Settings → Hotspot)
-2. Phone B / Laptop: Connect to Phone A's hotspot
-3. Open `https://hackathon-frontend-seven-theta.vercel.app` on both
-4. Login on both devices
-5. **Tap SOS on one device → See alert on the other!**
+```
+📱 Phone A (Hotspot) ←→ 💻 Laptop (Running Server) ←→ 📱 Phone B
+                              ↓
+                    [Same App Server = Shared State]
+                              ↓
+                    [SOS broadcasts to ALL devices!]
+```
+
+The laptop acts as a local server - no internet required!
 
 ---
 
@@ -44,20 +58,21 @@ In a flood, there's no WiFi. Use **Mobile Hotspot** instead:
 
 | Feature | Description |
 |---------|-------------|
-| **ONE-TAP SOS** | Big red button - no complex steps |
-| **P2P Transfer** | Works via hotspot, no internet needed |
-| **Offline Mode** | PWA - works without connectivity |
-| **Auto Location** | GPS works without internet |
-| **Phone Vibrate** | Alerts when SOS received |
+| **ONE-TAP SOS** | Big red button at bottom |
+| **Cross-Device P2P** | Works via local server |
+| **Offline Ready** | No internet needed |
+| **Auto Location** | GPS works offline |
 
 ---
 
 ## 🎯 Hackathon Demo Script
 
-1. "In a flood, cell towers are down. No internet."
-2. "But we can create our own network with hotspot!"
-3. Turn on hotspot → Connect devices
-4. Tap SOS → Other device receives it instantly
-5. "This is how disaster victims can communicate!"
+1. "Cell towers are down in a flood. No internet."
+2. "One person creates a hotspot with their phone."
+3. "I run SafeRoute on my laptop, everyone connects."
+4. Show laptop IP: `npm run dev -- --host`
+5. Open app on mobile via laptop's IP
+6. Tap SOS → Other devices receive it!
+7. "Victims can coordinate rescue without any internet!"
 
-**🏆 This solves real-world disaster communication problems!**
+**🏆 Real disaster solution - no infrastructure needed!**
