@@ -362,8 +362,8 @@ export default function RescueTeamDashboard({ onBack: _onBack }: { onBack?: () =
         }
         setLastUpdate(new Date());
       } catch (error) {
-        console.error('Failed to fetch alerts:', error);
-        addNotification('Failed to load alerts', 'alert');
+        // Fail silently when offline - don't show error notification
+        console.log('Alerts fetch skipped (offline/no backend)');
       }
     };
     loadAlerts();
